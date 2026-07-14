@@ -1,0 +1,69 @@
+import { Home, Zap, Wallet, User, ShieldAlert } from 'lucide-react';
+
+interface BottomNavProps {
+  activeTab: 'home' | 'invest' | 'wallet' | 'profile';
+  setActiveTab: (tab: 'home' | 'invest' | 'wallet' | 'profile') => void;
+  isAdmin: boolean;
+  onOpenAdmin: () => void;
+}
+
+export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmin }: BottomNavProps) {
+  const tabs = [
+    { id: 'home' as const, label: 'Home', icon: Home },
+    { id: 'invest' as const, label: 'Invest', icon: Zap },
+    { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
+    { id: 'profile' as const, label: 'Profile', icon: User },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-slate-200/80 backdrop-blur-md pb-safe-bottom">
+      <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between relative">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex flex-col items-center justify-center flex-1 py-1 h-full relative cursor-pointer group transition-all"
+            >
+              <div
+                className={`p-1.5 rounded-xl transition-all ${
+                  isActive
+                    ? 'text-indigo-600 scale-110 bg-indigo-50'
+                    : 'text-slate-400 group-hover:text-slate-600'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+              </div>
+              <span
+                className={`text-[10px] font-medium font-mono mt-0.5 tracking-wider transition-colors ${
+                  isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+                }`}
+              >
+                {tab.label}
+              </span>
+
+              {/* Glowing active indigo dot */}
+              {isActive && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-indigo-600 rounded-full shadow-[0_0_8px_#4f46e5]" />
+              )}
+            </button>
+          );
+        })}
+
+        {/* Float Admin Quick Trigger if admin */}
+        {isAdmin && (
+          <button
+            onClick={onOpenAdmin}
+            className="absolute -top-12 right-6 p-2.5 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer border border-white z-50 flex items-center justify-center animate-bounce"
+            title="Open Admin Panel"
+          >
+            <ShieldAlert className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </nav>
+  );
+}

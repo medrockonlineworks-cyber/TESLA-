@@ -1,0 +1,6 @@
+{
+  "name": "Tesla Investment Limited",
+  "description": "A premium, mobile-first, Tesla-inspired investment application with real-time countdowns, wallet recharges, withdrawals, and an advanced admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
