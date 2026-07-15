@@ -440,10 +440,32 @@ export default function AdminPanel({
                             className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Eye className="w-3.5 h-3.5" />
-                            <span>Receipt</span>
+                            <span>Expand</span>
                           </button>
                         )}
                       </div>
+
+                      {/* Display uploaded payment proof screenshot inline for instant verification */}
+                      {dep.screenshot_url && (
+                        <div className="relative group bg-black/40 border border-zinc-900 rounded-xl overflow-hidden p-2 flex flex-col gap-1.5">
+                          <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block px-1">Uploaded Payment Proof:</span>
+                          <div 
+                            onClick={() => setViewingReceiptUrl(dep.screenshot_url)}
+                            className="relative aspect-[4/3] w-full rounded-lg overflow-hidden border border-zinc-800/80 bg-zinc-950/40 cursor-pointer hover:border-amber-500/40 transition-all flex items-center justify-center"
+                          >
+                            <img
+                              src={dep.screenshot_url}
+                              alt="Payment Proof"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-contain transition-transform hover:scale-102 duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                              <Eye className="w-4 h-4 text-white" />
+                              <span className="text-[10px] text-white font-mono font-bold uppercase tracking-wider">Click to Zoom</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Control buttons */}
                       <div className="grid grid-cols-2 gap-3 pt-2">

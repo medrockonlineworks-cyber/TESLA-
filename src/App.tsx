@@ -421,34 +421,36 @@ export default function App() {
         </div>
 
         {/* Floating Brand/Community Outreach Actions (Telegram + App Download) */}
-        <div className="absolute bottom-20 left-4 right-4 z-40 flex justify-between items-center pointer-events-none">
-          {/* Telegram floating launcher button */}
-          <motion.a
-            href="https://t.me/tesla_investment_et"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => showToast("Opening Tesla Investment Official Telegram channel...", "info")}
-            className="pointer-events-auto w-11 h-11 rounded-full bg-[#229ED9] hover:bg-[#1d8fc4] flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/15 transition-all cursor-pointer"
-            id="telegram-link-launcher"
-            title="Join Telegram"
-          >
-            <Send className="w-4.5 h-4.5 -translate-x-[1px] translate-y-[0.5px]" />
-          </motion.a>
+        <div className="fixed bottom-20 left-0 right-0 z-40 pointer-events-none">
+          <div className="max-w-md mx-auto px-6 flex justify-between items-center pointer-events-none">
+            {/* Telegram floating launcher button */}
+            <motion.a
+              href="https://t.me/tesla_investment_et"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => showToast("Opening Tesla Investment Official Telegram channel...", "info")}
+              className="pointer-events-auto w-11 h-11 rounded-full bg-[#229ED9] hover:bg-[#1d8fc4] flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/15 transition-all cursor-pointer"
+              id="telegram-link-launcher"
+              title="Join Telegram"
+            >
+              <Send className="w-4.5 h-4.5 -translate-x-[1px] translate-y-[0.5px]" />
+            </motion.a>
 
-          {/* Tesla App Download floating button */}
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleDownloadApp}
-            className="pointer-events-auto bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10.5px] px-4 py-2.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-400/20 border border-amber-300/35 cursor-pointer font-sans"
-            id="tesla-apk-downloader"
-          >
-            <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
-            <span>Tesla App</span>
-          </motion.button>
+            {/* Tesla App Download floating button */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleDownloadApp}
+              className="pointer-events-auto bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10.5px] px-4 py-2.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-400/20 border border-amber-300/35 cursor-pointer font-sans"
+              id="tesla-apk-downloader"
+            >
+              <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
+              <span>Tesla App</span>
+            </motion.button>
+          </div>
         </div>
 
         {/* Fixed bottom dashboard menu tabs controller */}
