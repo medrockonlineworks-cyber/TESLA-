@@ -112,7 +112,7 @@ function setStorageItem<T>(key: string, value: T): void {
 
 // Initializing simulator tables
 const initLocalDb = () => {
-  getStorageItem<DbUser[]>('users', []);
+  const users = getStorageItem<DbUser[]>('users', []);
   
   // Force reset plans to the new high-yield custom plans from the screenshot
   const storedPlans = localStorage.getItem('tesla_inv_plans');
@@ -125,7 +125,7 @@ const initLocalDb = () => {
   getStorageItem<Investment[]>('investments', []);
   getStorageItem<Deposit[]>('deposits', []);
   getStorageItem<Withdrawal[]>('withdrawals', []);
-  getStorageItem<Transaction[]>('transactions', []);
+  const transactions = getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
 
   // Force reset agents to include the new Telebirr agent immediately
@@ -134,6 +134,34 @@ const initLocalDb = () => {
     localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
   } else {
     getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
+  }
+
+  // Migrate existing users/transactions from $10 welcome bonus to $30
+  let updatedUsers = false;
+  let updatedTxs = false;
+
+  transactions.forEach(tx => {
+    if (tx.type === 'bonus' && tx.description === 'Welcome Sign-up Bonus Credit' && tx.amount === 10) {
+      tx.amount = 30;
+      updatedTxs = true;
+    }
+  });
+
+  users.forEach(u => {
+    if (u.balance === 10) {
+      const hasWelcomeBonus = transactions.some(tx => tx.user_id === u.id && tx.type === 'bonus' && tx.description === 'Welcome Sign-up Bonus Credit');
+      if (hasWelcomeBonus) {
+        u.balance = 30;
+        updatedUsers = true;
+      }
+    }
+  });
+
+  if (updatedUsers) {
+    setStorageItem('users', users);
+  }
+  if (updatedTxs) {
+    setStorageItem('transactions', transactions);
   }
 };
 

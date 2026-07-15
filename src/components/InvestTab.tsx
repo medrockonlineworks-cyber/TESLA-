@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Investment } from '../types';
-import { Zap, Clock, ShieldCheck, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
+import { Zap, Clock, ShieldCheck, CheckCircle2, Activity } from 'lucide-react';
 
 interface InvestTabProps {
   investments: Investment[];
@@ -8,6 +8,7 @@ interface InvestTabProps {
   showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
   currency: 'USD' | 'ETB';
   formatAmount: (usdValue: number, fractionDigits?: number) => string;
+  lang: 'en' | 'am';
 }
 
 export default function InvestTab({
@@ -16,6 +17,7 @@ export default function InvestTab({
   showToast,
   currency,
   formatAmount,
+  lang,
 }: InvestTabProps) {
   const [filter, setFilter] = useState<'active' | 'completed'>('active');
   const [, setTicker] = useState(0); // Forces re-render every second for countdown sync
@@ -28,6 +30,52 @@ export default function InvestTab({
   }, []);
 
   const filteredInvestments = investments.filter((i) => i.status === filter);
+
+  // Translation dictionary matching English and Amharic locales
+  const t = {
+    en: {
+      title: "Investment",
+      subTitle: "Stakes",
+      activeContracts: "Active Contracts",
+      historicStakes: "Historic Stakes",
+      noContracts: "No contracts found",
+      noActiveDesc: "Navigate to the Home tab to lock in a new guaranteed investment plan!",
+      noCompletedDesc: "Once your active clean energy contracts finish their cycles, they will appear here.",
+      contractLabel: "Staking Contract",
+      staked: "STAKED",
+      released: "RELEASED",
+      capitalInput: "Capital Input",
+      expectedEarnings: "Expected Earnings",
+      releasedEarnings: "Released Earnings",
+      maturingIn: "Maturing In",
+      guaranteedSettled: "GUARANTEED SETTLED",
+      started: "Started",
+      matures: "Matures",
+      releasedDate: "Released",
+      forceSync: "Force-Sync Contracts"
+    },
+    am: {
+      title: "የኢንቨስትመንት",
+      subTitle: "እቅዶች",
+      activeContracts: "ንቁ እቅዶች",
+      historicStakes: "ያለፉ እቅዶች",
+      noContracts: "ምንም እቅዶች አልተገኙም",
+      noActiveDesc: "አዲስ ዋስትና ያለው የኢንቨስትመንት እቅድ ለመጀመር ወደ መጀመሪያው ገጽ ይሂዱ!",
+      noCompletedDesc: "የመረጡት የንቁ መዋዕለ ንዋይ እቅዶች ኡደታቸውን ሲያጠናቅቁ እዚህ ይታያሉ::",
+      contractLabel: "የመዋዕለ ንዋይ ኮንትራት",
+      staked: "በሂደት ላይ",
+      released: "ተጠናቋል",
+      capitalInput: "የተቀመጠ ካፒታል",
+      expectedEarnings: "የሚጠበቅ ትርፍ",
+      releasedEarnings: "የተለቀቀ ትርፍ",
+      maturingIn: "የሚጠናቀቅበት ጊዜ",
+      guaranteedSettled: "የተረጋገጠ የተጠናቀቀ",
+      started: "የተጀመረበት",
+      matures: "የሚጠናቀቅበት",
+      releasedDate: "የተለቀቀበት",
+      forceSync: "ኮንትራቶችን አመሳስል"
+    }
+  };
 
   // Helper to format remaining time
   const getRemainingTime = (endTimeStr: string) => {
@@ -54,7 +102,7 @@ export default function InvestTab({
 
   const handleManualCheck = async () => {
     await onRefresh();
-    showToast('Contract ledger synchronized.', 'info');
+    showToast(lang === 'en' ? 'Contract ledger synchronized.' : 'የውል መዝገብ ተመሳስሏል::', 'info');
   };
 
   return (
@@ -63,13 +111,13 @@ export default function InvestTab({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-            Investment <span className="text-amber-600 font-extrabold">Stakes</span>
+            {t[lang].title} <span className="text-amber-600 font-extrabold">{t[lang].subTitle}</span>
           </h2>
         </div>
         <button
           onClick={handleManualCheck}
           className="p-2 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl text-slate-500 hover:text-amber-600 transition-colors cursor-pointer shadow-sm"
-          title="Force-Sync Contracts"
+          title={t[lang].forceSync}
         >
           <Activity className="w-4 h-4 animate-pulse" />
         </button>
@@ -85,7 +133,7 @@ export default function InvestTab({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          Active Contracts ({investments.filter((i) => i.status === 'active').length})
+          {t[lang].activeContracts} ({investments.filter((i) => i.status === 'active').length})
         </button>
         <button
           onClick={() => setFilter('completed')}
@@ -95,7 +143,7 @@ export default function InvestTab({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          Historic Stakes ({investments.filter((i) => i.status === 'completed').length})
+          {t[lang].historicStakes} ({investments.filter((i) => i.status === 'completed').length})
         </button>
       </div>
 
@@ -103,17 +151,26 @@ export default function InvestTab({
       {filteredInvestments.length === 0 ? (
         <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm">
           <Clock className="w-10 h-10 text-slate-300 mx-auto mb-3 animate-pulse" />
-          <h4 className="text-sm font-extrabold text-slate-800">No {filter} contracts found</h4>
+          <h4 className="text-sm font-extrabold text-slate-800">{t[lang].noContracts}</h4>
           <p className="text-[11px] text-slate-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
             {filter === 'active'
-              ? 'Navigate to the Home tab to lock in a new guaranteed investment plan!'
-              : 'Once your active clean energy contracts finish their cycles, they will appear here.'}
+              ? t[lang].noActiveDesc
+              : t[lang].noCompletedDesc}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredInvestments.map((inv) => {
             const timeData = getRemainingTime(inv.end_time);
+
+            // Handle Amharic translation for plan names if they are standard strings
+            const translatedPlanName = () => {
+              if (inv.plan_name === 'Starter plan') return lang === 'am' ? 'የጀማሪ እቅድ' : 'Starter plan';
+              if (inv.plan_name === 'Growth plan') return lang === 'am' ? 'የዕድገት እቅድ' : 'Growth plan';
+              if (inv.plan_name === 'Premium plan') return lang === 'am' ? 'የፕሪሚየም እቅድ' : 'Premium plan';
+              if (inv.plan_name === 'Elite plan') return lang === 'am' ? 'የኤሊት እቅድ' : 'Elite plan';
+              return inv.plan_name;
+            };
 
             return (
               <div
@@ -130,10 +187,10 @@ export default function InvestTab({
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold">
-                      Staking Contract
+                      {t[lang].contractLabel}
                     </span>
                     <h4 className="text-sm font-extrabold text-slate-900 tracking-tight mt-1">
-                      {inv.plan_name || 'Tesla Standard Plan'}
+                      {translatedPlanName()}
                     </h4>
                   </div>
                   <div
@@ -146,12 +203,12 @@ export default function InvestTab({
                     {inv.status === 'active' ? (
                       <>
                         <Zap className="w-3 h-3 text-[#fbbc05] animate-spin" />
-                        STAKED
+                        {t[lang].staked}
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        RELEASED
+                        {t[lang].released}
                       </>
                     )}
                   </div>
@@ -160,12 +217,12 @@ export default function InvestTab({
                 {/* Contract Detail Panel */}
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-100 rounded-2xl p-3 mt-4">
                   <div>
-                    <span className="text-[8px] text-slate-400 uppercase font-bold block">Capital Input</span>
+                    <span className="text-[8px] text-slate-400 uppercase font-bold block">{t[lang].capitalInput}</span>
                     <span className="text-sm font-black text-slate-800 font-mono block mt-0.5">{formatAmount(inv.amount, 2)}</span>
                   </div>
                   <div>
                     <span className="text-[8px] text-slate-400 uppercase font-bold block">
-                      {inv.status === 'active' ? 'Expected Earnings' : 'Released Earnings'}
+                      {inv.status === 'active' ? t[lang].expectedEarnings : t[lang].releasedEarnings}
                     </span>
                     <span className="text-sm font-black text-emerald-700 font-mono block mt-0.5">
                       {formatAmount(inv.expected_return, 2)}
@@ -179,7 +236,7 @@ export default function InvestTab({
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-500 text-[10px] uppercase flex items-center gap-1 font-bold">
                         <Clock className="w-3 h-3 text-amber-500" />
-                        Maturing In
+                        {t[lang].maturingIn}
                       </span>
                       <span className="text-amber-700 font-mono font-bold tracking-widest bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded-md">
                         {timeData.text}
@@ -194,18 +251,18 @@ export default function InvestTab({
                       />
                     </div>
                     <div className="flex justify-between text-[8px] text-slate-400 font-mono font-bold">
-                      <span>Started: {new Date(inv.start_time).toLocaleTimeString()}</span>
-                      <span>Matures: {new Date(inv.end_time).toLocaleTimeString()}</span>
+                      <span>{t[lang].started}: {new Date(inv.start_time).toLocaleTimeString()}</span>
+                      <span>{t[lang].matures}: {new Date(inv.end_time).toLocaleTimeString()}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-emerald-700 text-[10px] font-bold">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      GUARANTEED SETTLED
+                      {t[lang].guaranteedSettled}
                     </div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase">
-                      Released: {new Date(inv.end_time).toLocaleDateString()}
+                      {t[lang].releasedDate}: {new Date(inv.end_time).toLocaleDateString()}
                     </span>
                   </div>
                 )}

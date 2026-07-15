@@ -82,7 +82,48 @@ export default function HomeTab({
       starter: "Starter plan",
       growth: "Growth plan",
       premium: "Premium plan",
-      elite: "Elite plan"
+      elite: "Elite plan",
+      welcome: "Welcome,",
+      balance: "Balance",
+      recharge: "+ Recharge",
+      activeStakes: "Active Stakes",
+      totalProfit: "Total Profit",
+      planYields: "Plan Yields",
+      upTo60: "Up to 60%",
+      importantUpdates: "Important Updates",
+      newBadge: "NEW",
+      issued: "Issued:",
+      modalSubtitle: "Complete payment, upload proof, then submit for verification.",
+      orderId: "Order ID",
+      duration: "Duration",
+      investmentAmount: "Investment amount",
+      expectedReturns: "Expected returns",
+      paymentDetails: "Payment Details",
+      paymentMethod: "Payment method",
+      cbeBank: "COMMERCIAL BANK OF ETHIOPIA",
+      holderName: "Holder account name",
+      holderValue: "Agent - Geleta Babe Gelan",
+      paymentAccount: "Payment account",
+      copyBtn: "Copy",
+      instructions: "Instructions:",
+      inst1: "Open your Commercial Bank of Ethiopia (CBE) app",
+      inst2: "Transfer the exact Birr amount",
+      inst3: "to the account above",
+      inst4: "Take a screenshot of the transaction receipt",
+      inst5: "Upload the screenshot below to initiate verification",
+      timeRemaining: "TIME REMAINING TO COMPLETE PAYMENT",
+      uploadProof: "Upload Payment Proof",
+      chooseFile: "Choose File",
+      dragAndDrop: "or drag and drop",
+      fileFormats: "JPG, JPEG, PNG screenshot, or PDF up to 10MB",
+      readyToSubmit: "Ready to submit",
+      uploadToContinue: "Upload payment proof to continue",
+      cancel: "Cancel",
+      copiedToast: "Bank account number copied!",
+      fileSelectedToast: "Payment proof file selected:",
+      uploadRequiredToast: "Please upload payment proof screenshot first",
+      submitSuccessToast: "Direct payment proof submitted successfully! Admin will verify and activate your plan.",
+      insufficientBalance: "Insufficient wallet balance. Please recharge your wallet."
     },
     am: {
       activeTrades: "ንቁ እቅዶች",
@@ -93,7 +134,48 @@ export default function HomeTab({
       starter: "የጀማሪ እቅድ",
       growth: "የዕድገት እቅድ",
       premium: "የፕሪሚየም እቅድ",
-      elite: "የኤሊት እቅድ"
+      elite: "የኤሊት እቅድ",
+      welcome: "እንኳን ደህና መጡ፣",
+      balance: "ቀሪ ሂሳብ",
+      recharge: "+ ገንዘብ አስገባ",
+      activeStakes: "ንቁ ኢንቨስትመንቶች",
+      totalProfit: "አጠቃላይ ትርፍ",
+      planYields: "የዕቅድ ትርፍ",
+      upTo60: "እስከ 60%",
+      importantUpdates: "አስፈላጊ መረጃዎች",
+      newBadge: "አዲስ",
+      issued: "የወጣበት ቀን:",
+      modalSubtitle: "ክፍያውን ያጠናቅቁ፣ የክፍያ ማረጋገጫውን ይስቀሉ፣ ከዚያ ለማረጋገጫ ያቅርቡ።",
+      orderId: "የትዕዛዝ መለያ",
+      duration: "የቆይታ ጊዜ",
+      investmentAmount: "የኢንቨስትመንት መጠን",
+      expectedReturns: "የሚጠበቀው ትርፍ",
+      paymentDetails: "የክፍያ ዝርዝሮች",
+      paymentMethod: "የክፍያ መንገድ",
+      cbeBank: "የኢትዮጵያ ንግድ ባንክ (CBE)",
+      holderName: "የአካውንት ስም",
+      holderValue: "ወኪል - ገለታ ባቤ ገላን",
+      paymentAccount: "የባንክ አካውንት ቁጥር",
+      copyBtn: "ቅዳ",
+      instructions: "መመሪያዎች:",
+      inst1: "የኢትዮጵያ ንግድ ባንክ (CBE) መተግበሪያዎን ይክፈቱ",
+      inst2: "ትክክለኛውን የብር መጠን ያስተላልፉ",
+      inst3: "ከላይ ወዳለው የባንክ ሂሳብ",
+      inst4: "የዝውውሩን ደረሰኝ ስክሪንሾት ያንሱ",
+      inst5: "ማረጋገጫ ለመጀመር ስክሪንሾቱን ከታች ይስቀሉ",
+      timeRemaining: "ክፍያውን ለማጠናቀቅ የቀረው ጊዜ",
+      uploadProof: "የክፍያ ማረጋገጫ ይስቀሉ",
+      chooseFile: "ፋይል ይምረጡ",
+      dragAndDrop: "ወይም እዚህ ይጎትቱ",
+      fileFormats: "JPG, JPEG, PNG ስክሪንሾት፣ ወይም ፒዲኤፍ እስከ 10ሜባ",
+      readyToSubmit: "ለማስገባት ዝግጁ ነው",
+      uploadToContinue: "ለመቀጠል የክፍያ ማረጋገጫ ይስቀሉ",
+      cancel: "ሰርዝ",
+      copiedToast: "የባንክ አካውንት ቁጥር ተገልብጧል!",
+      fileSelectedToast: "የክፍያ ማረጋገጫ ፋይል ተመርጧል:",
+      uploadRequiredToast: "እባክዎ በመጀመሪያ የክፍያ ማረጋገጫ ስክሪንሾት ይስቀሉ",
+      submitSuccessToast: "የክፍያ ማረጋገጫ በተሳካ ሁኔታ ቀርቧል! አስተዳዳሪው አረጋግጦ እቅድዎን ያነቃቃል።",
+      insufficientBalance: "በቂ የኪስ ቦርሳ ቀሪ ሂሳብ የለም። እባክዎ ቦርሳዎን ይሙሉ"
     }
   };
 
@@ -116,7 +198,7 @@ export default function HomeTab({
   const handleConfirmInvestment = async () => {
     if (!selectedPlan) return;
     if (user.balance < selectedPlan.amount) {
-      showToast('Insufficient wallet balance. Please recharge your wallet.', 'error');
+      showToast(t[lang].insufficientBalance, 'error');
       setSelectedPlan(null);
       // Redirect to wallet tab
       setActiveTab('wallet');
@@ -141,7 +223,7 @@ export default function HomeTab({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-            Welcome, <span className="text-amber-600 font-extrabold">{user.full_name.split(' ')[0]}</span>
+            {t[lang].welcome} <span className="text-amber-600 font-extrabold">{user.full_name.split(' ')[0]}</span>
           </h2>
         </div>
       </div>
@@ -150,7 +232,7 @@ export default function HomeTab({
       <div className="bg-gradient-to-br from-amber-500 via-amber-400 to-amber-500 border border-amber-300 rounded-3xl p-5 shadow-lg relative overflow-hidden text-slate-950">
         <div className="flex justify-between items-start">
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-slate-800 font-bold">Balance</span>
+            <span className="text-[10px] uppercase tracking-wider text-slate-800 font-bold">{t[lang].balance}</span>
             <div className="text-3xl font-extrabold tracking-tight mt-1 text-slate-950 font-mono">
               {formatAmount(user.balance, 2)}
             </div>
@@ -159,21 +241,21 @@ export default function HomeTab({
             onClick={() => setActiveTab('wallet')}
             className="px-4 py-2 bg-slate-950 hover:bg-slate-900 text-white font-sans text-xs font-bold tracking-wider rounded-xl transition-all shadow-md cursor-pointer uppercase border border-slate-800"
           >
-            + Recharge
+            {t[lang].recharge}
           </button>
         </div>
 
         {/* Stats Subdivision Grid */}
         <div className="grid grid-cols-3 gap-3 mt-6 pt-4 border-t border-amber-600/20">
           <div className="bg-white/40 p-2.5 rounded-xl border border-white/35">
-            <span className="text-[8px] uppercase text-slate-800 font-bold block">Active Stakes</span>
+            <span className="text-[8px] uppercase text-slate-800 font-bold block">{t[lang].activeStakes}</span>
             <span className="text-sm font-bold text-slate-950 font-mono mt-0.5 block">
               {formatAmount(activeInvestmentTotal, 0)}
             </span>
           </div>
 
           <div className="bg-white/40 p-2.5 rounded-xl border border-white/35">
-            <span className="text-[8px] uppercase text-slate-800 font-bold block">Total Profit</span>
+            <span className="text-[8px] uppercase text-slate-800 font-bold block">{t[lang].totalProfit}</span>
             <span className="text-sm font-bold text-emerald-800 font-mono mt-0.5 block flex items-center gap-0.5">
               <TrendingUp className="w-3 h-3 text-emerald-800 inline" />
               {formatAmount(user.total_profit, 0)}
@@ -181,43 +263,15 @@ export default function HomeTab({
           </div>
 
           <div className="bg-white/40 p-2.5 rounded-xl border border-white/35">
-            <span className="text-[8px] uppercase text-slate-800 font-bold block">Plan Yields</span>
+            <span className="text-[8px] uppercase text-slate-800 font-bold block">{t[lang].planYields}</span>
             <span className="text-sm font-bold text-slate-950 font-mono mt-0.5 block">
-              Up to 60%
+              {t[lang].upTo60}
             </span>
           </div>
         </div>
       </div>
 
-      {/* 3. Latest Announcements Section */}
-      {announcements.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 px-1">
-            <Megaphone className="w-4 h-4 text-amber-500" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Important Updates</h3>
-          </div>
 
-          <div className="space-y-2">
-            {announcements.slice(0, 1).map((ann) => (
-              <div
-                key={ann.id}
-                className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 relative overflow-hidden"
-              >
-                <div className="absolute right-2 top-2 px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-700 text-[8px] font-mono font-bold uppercase">
-                  NEW
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900 tracking-tight pr-8">{ann.title}</h4>
-                <p className="text-[11px] text-slate-600 mt-1.5 line-clamp-2 leading-relaxed">
-                  {ann.message}
-                </p>
-                <p className="text-[8px] text-slate-400 font-mono mt-2.5 uppercase font-bold">
-                  Issued: {new Date(ann.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* 4. Active Investment Plans Container (Matching Screenshot styling) */}
       <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-4 shadow-sm relative overflow-hidden">
@@ -311,7 +365,7 @@ export default function HomeTab({
                   {getPlanName(selectedPlan).toUpperCase()}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed px-4">
-                  Complete payment, upload proof, then submit for verification.
+                  {t[lang].modalSubtitle}
                 </p>
               </div>
 
@@ -319,18 +373,18 @@ export default function HomeTab({
                 {/* Yellow Card 1: Order ID & Duration */}
                 <div className="bg-[#fffdf0] border border-amber-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(251,188,5,0.03)] flex justify-between items-start">
                   <div>
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">Order ID</span>
+                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].orderId}</span>
                     <span className="text-slate-900 text-base font-extrabold mt-1 block font-mono">{orderId}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">Duration</span>
-                    <span className="text-slate-900 text-sm font-extrabold mt-1 block">{selectedPlan.duration_hours} hours</span>
+                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].duration}</span>
+                    <span className="text-slate-900 text-sm font-extrabold mt-1 block">{selectedPlan.duration_hours} {t[lang].hours}</span>
                   </div>
                 </div>
 
                 {/* Yellow Card 2: Investment amount */}
                 <div className="bg-[#fffdf0] border border-amber-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(251,188,5,0.03)] flex justify-between items-center">
-                  <span className="text-slate-700 text-xs font-bold uppercase tracking-wider">Investment amount</span>
+                  <span className="text-slate-700 text-xs font-bold uppercase tracking-wider">{t[lang].investmentAmount}</span>
                   <span className="text-slate-900 font-black text-sm">
                     {displayPrice(selectedPlan.amount)} ({formatAmount(selectedPlan.amount, 0)})
                   </span>
@@ -338,59 +392,59 @@ export default function HomeTab({
 
                 {/* Yellow Card 3: Expected returns */}
                 <div className="bg-[#fffdf0] border border-amber-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(251,188,5,0.03)] flex justify-between items-center">
-                  <span className="text-slate-700 text-xs font-bold uppercase tracking-wider">Expected returns</span>
+                  <span className="text-slate-700 text-xs font-bold uppercase tracking-wider">{t[lang].expectedReturns}</span>
                   <span className="text-slate-900 font-black text-sm">
                     {displayPrice(selectedPlan.return_amount)} ({formatAmount(selectedPlan.return_amount, 0)})
                   </span>
                 </div>
 
                 {/* Section Title */}
-                <h4 className="text-slate-900 text-xs font-bold uppercase tracking-widest mt-4 block">Payment Details</h4>
+                <h4 className="text-slate-900 text-xs font-bold uppercase tracking-widest mt-4 block">{t[lang].paymentDetails}</h4>
 
                 {/* Yellow Card 4: CBE Bank details */}
                 <div className="bg-[#fffdf0] border border-amber-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(251,188,5,0.03)] space-y-3">
                   <div>
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">Payment method</span>
-                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">COMMERCIAL BANK OF ETHIOPIA</span>
+                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].paymentMethod}</span>
+                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">{t[lang].cbeBank}</span>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">Holder account name</span>
-                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">Agent - Geleta Babe Gelan</span>
+                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].holderName}</span>
+                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">{t[lang].holderValue}</span>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2 flex justify-between items-end">
                     <div>
-                      <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">Payment account</span>
+                      <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].paymentAccount}</span>
                       <span className="text-slate-900 font-extrabold text-sm block mt-0.5 font-mono">1000756321424</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
                         navigator.clipboard.writeText('1000756321424');
-                        showToast('Bank account number copied!', 'success');
+                        showToast(t[lang].copiedToast, 'success');
                       }}
                       className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border border-amber-500/25 cursor-pointer"
                     >
                       <ClipboardCheck className="w-3 h-3" />
-                      <span>Copy</span>
+                      <span>{t[lang].copyBtn}</span>
                     </button>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2.5">
-                    <span className="text-slate-900 font-bold text-[10px] block mb-1">Instructions:</span>
+                    <span className="text-slate-900 font-bold text-[10px] block mb-1">{t[lang].instructions}</span>
                     <ul className="text-[10px] text-slate-600 list-disc list-inside space-y-0.5 font-medium leading-relaxed">
-                      <li>Open your Commercial Bank of Ethiopia (CBE) app</li>
-                      <li>Transfer the exact Birr amount <strong className="text-slate-900">({(selectedPlan.amount * 120).toLocaleString()} ETB)</strong> to the account above</li>
-                      <li>Take a screenshot of the transaction receipt</li>
-                      <li>Upload the screenshot below to initiate verification</li>
+                      <li>{t[lang].inst1}</li>
+                      <li>{t[lang].inst2} <strong className="text-slate-900">({(selectedPlan.amount * 120).toLocaleString()} ETB)</strong> {t[lang].inst3}</li>
+                      <li>{t[lang].inst4}</li>
+                      <li>{t[lang].inst5}</li>
                     </ul>
                   </div>
                 </div>
 
                 {/* Countdown timer */}
                 <div className="text-center py-2.5 bg-red-50 border border-red-100 rounded-2xl">
-                  <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">TIME REMAINING TO COMPLETE PAYMENT</span>
+                  <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">{t[lang].timeRemaining}</span>
                   <span className="text-red-600 font-extrabold text-2xl font-mono tracking-tight animate-pulse">
                     {formatCountdown(countdown)}
                   </span>
@@ -399,7 +453,7 @@ export default function HomeTab({
                 {/* Proof Upload */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide block">
-                    Upload Payment Proof <span className="text-red-500">*</span>
+                    {t[lang].uploadProof} <span className="text-red-500">*</span>
                   </label>
                   
                   <div className="border-2 border-dashed border-slate-200 hover:border-amber-300 rounded-2xl p-4 bg-slate-50 transition-colors text-center relative overflow-hidden group">
@@ -409,7 +463,7 @@ export default function HomeTab({
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setPaymentProof(e.target.files[0]);
-                          showToast(`Payment proof file selected: ${e.target.files[0].name}`, 'info');
+                          showToast(`${t[lang].fileSelectedToast} ${e.target.files[0].name}`, 'info');
                         }
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer z-10"
@@ -421,15 +475,15 @@ export default function HomeTab({
                           ✓
                         </span>
                         <span className="text-xs font-bold text-slate-800 line-clamp-1">{paymentProof.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{(paymentProof.size / 1024 / 1024).toFixed(2)} MB • Ready to submit</span>
+                        <span className="text-[10px] text-slate-400 font-mono">{(paymentProof.size / 1024 / 1024).toFixed(2)} MB • {t[lang].readyToSubmit}</span>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center space-y-1.5 text-slate-500 group-hover:text-slate-800 transition-colors">
                         <div className="text-xs font-bold">
-                          <span className="text-amber-600 underline">Choose File</span> or drag and drop
+                          <span className="text-amber-600 underline">{t[lang].chooseFile}</span> {t[lang].dragAndDrop}
                         </div>
                         <p className="text-[10px] text-slate-400 font-medium">
-                          JPG, JPEG, PNG screenshot, or PDF up to 10MB
+                          {t[lang].fileFormats}
                         </p>
                       </div>
                     )}
@@ -441,7 +495,7 @@ export default function HomeTab({
                   <button
                     onClick={async () => {
                       if (!paymentProof) {
-                        showToast('Please upload payment proof screenshot first', 'error');
+                        showToast(t[lang].uploadRequiredToast, 'error');
                         return;
                       }
                       setInvesting(true);
@@ -458,7 +512,7 @@ export default function HomeTab({
                           `Direct Investment: ${selectedPlan.id}`
                         );
                         
-                        showToast('Direct payment proof submitted successfully! Admin will verify and activate your plan.', 'success');
+                        showToast(t[lang].submitSuccessToast, 'success');
                         setSelectedPlan(null);
                         setPaymentProof(null);
                       } catch (err: any) {
@@ -477,7 +531,7 @@ export default function HomeTab({
                     {investing ? (
                       <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin mx-auto" />
                     ) : (
-                      'Upload payment proof to continue'
+                      t[lang].uploadToContinue
                     )}
                   </button>
 
@@ -485,7 +539,7 @@ export default function HomeTab({
                     onClick={() => setSelectedPlan(null)}
                     className="w-full py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl cursor-pointer uppercase transition-colors text-center"
                   >
-                    Cancel
+                    {t[lang].cancel}
                   </button>
                 </div>
               </div>

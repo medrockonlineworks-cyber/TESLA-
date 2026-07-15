@@ -13,6 +13,7 @@ interface AdminPanelProps {
   transactions: Transaction[];
   onRefreshData: () => Promise<void>;
   showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  lang: 'en' | 'am';
 }
 
 type AdminSubTab = 'recharges' | 'withdrawals' | 'users' | 'plans' | 'announcements' | 'investments' | 'agents' | 'reports';
@@ -27,6 +28,7 @@ export default function AdminPanel({
   transactions,
   onRefreshData,
   showToast,
+  lang,
 }: AdminPanelProps) {
   const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('recharges');
   const [processing, setProcessing] = useState<string | null>(null);
@@ -53,6 +55,111 @@ export default function AdminPanel({
   const [newAgentName, setNewAgentName] = useState('');
   const [newAgentNumber, setNewAgentNumber] = useState('');
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+
+  const t = {
+    en: {
+      adminConsole: "Admin Console",
+      recharges: "Recharges",
+      withdrawals: "Withdrawals",
+      users: "Users",
+      plans: "Plans",
+      broadcast: "Broadcast",
+      stakes: "Stakes",
+      agents: "Agents",
+      reports: "Reports",
+      pendingRecharges: "Pending Recharge Clearances",
+      noPendingRecharges: "No pending recharge tickets in ledger.",
+      pendingWithdrawals: "Pending Withdrawal Payouts",
+      noPendingWithdrawals: "No pending withdrawal requests in ledger.",
+      registeredMembers: "System Registered Members",
+      configureEnergyPools: "Configure Energy Pools",
+      addProject: "Add Project",
+      createTeslaPool: "Create New Tesla Pool",
+      modifyStakingPlan: "Modify Staking Plan",
+      projectName: "Project Display Name",
+      capitalAmount: "Capital Amount ($)",
+      returnPayout: "Return Payout ($)",
+      cycleDuration: "Cycle Duration (Hours)",
+      saveContract: "Save Contract Specifications",
+      editBtn: "Edit",
+      sendGlobalBulletins: "Send Global Bulletins",
+      bulletinTitle: "Bulletin Title",
+      messageText: "Message Text",
+      transmitBroadcast: "Transmit Worldwide Broadcast",
+      activeInvestmentPool: "Active Investment Pool Ledger",
+      corporateInvestmentReports: "Corporate Investment Reports",
+      activeTraders: "ACTIVE TRADERS:",
+      reserveLiquidity: "RESERVE LIQUIDITY:",
+      totalDeposited: "TOTAL DEPOSITED:",
+      totalWithdrawn: "TOTAL WITHDRAWN:",
+      capitalStaked: "CAPITAL UNDER MANAGEMENT (STAKED):",
+      exptReturn: "EXPT. RETURN:",
+      tradingEfficiency: "Forex Trading Efficiency Indicator",
+      completedCycles: "COMPLETED CYCLES:",
+      totalVolumeTraded: "TOTAL VOLUME TRADED:",
+      ensureAgentLiquidity: "Ensure managed agent accounts hold appropriate ETB liquidity matching these figures for rapid physical-to-digital settlements.",
+      authorizedAgentAccounts: "Authorized Agent Accounts",
+      addAgentBtn: "Add Agent",
+      cancelBtn: "Cancel",
+      proTipAgent: "Pro Tip: Include the word 'Awash' in the Agent Name to register them as an Awash Bank Agent. Otherwise, they will be classified as a Telebirr Agent.",
+      agentNameLabel: "Agent/Beneficiary Name",
+      agentNumberLabel: "Agent Account/Number",
+      createAgentBtn: "Create Agent Account",
+      noAgentsFound: "NO AUTHORIZED AGENT ACCOUNTS FOUND. PLATFORM WILL FALL BACK TO SYSTEM DEFAULT.",
+      submittedTxScreenshot: "Submitted Transaction Screenshot"
+    },
+    am: {
+      adminConsole: "የአስተዳዳሪ ሰሌዳ",
+      recharges: "ገንዘብ ማረጋገጫ",
+      withdrawals: "ገንዘብ ወጪዎች",
+      users: "አባላት",
+      plans: "ዕቅዶች",
+      broadcast: "ማስታወቂያ",
+      stakes: "ንቁ እቅዶች",
+      agents: "ወኪሎች",
+      reports: "ሪፖርቶች",
+      pendingRecharges: "በመጠባበቅ ላይ ያሉ የገንዘብ ማስገቢያዎች",
+      noPendingRecharges: "ምንም በመጠባበቅ ላይ ያሉ የገንዘብ ማስገቢያዎች የሉም።",
+      pendingWithdrawals: "በመጠባበቅ ላይ ያሉ የገንዘብ ወጪዎች",
+      noPendingWithdrawals: "ምንም በመጠባበቅ ላይ ያሉ የገንዘብ ወጪዎች የሉም።",
+      registeredMembers: "በስርዓቱ የተመዘገቡ አባላት",
+      configureEnergyPools: "የኢንቨስትመንት ዕቅዶችን ያዘጋጁ",
+      addProject: "ዕቅድ ጨምር",
+      createTeslaPool: "አዲስ የቴስላ ኢንቨስትመንት ዕቅድ ፍጠር",
+      modifyStakingPlan: "የኢንቨስትመንት ዕቅዱን ያስተካክሉ",
+      projectName: "የዕቅዱ ስም",
+      capitalAmount: "መነሻ ካፒታል ($)",
+      returnPayout: "የሚመለስ ገንዘብ ($)",
+      cycleDuration: "የቆይታ ጊዜ (በሰዓታት)",
+      saveContract: "የዕቅዱን ዝርዝሮች አስቀምጥ",
+      editBtn: "አስተካክል",
+      sendGlobalBulletins: "ለአባላት ማስታወቂያ ይላኩ",
+      bulletinTitle: "የማስታወቂያው ርዕስ",
+      messageText: "የማስታወቂያው ዝርዝር",
+      transmitBroadcast: "ማስታወቂያውን በይፋ ይልቀቁ",
+      activeInvestmentPool: "ንቁ የኢንቨስትመንት ዝርዝር",
+      corporateInvestmentReports: "የኩባንያው የኢንቨስትመንት ሪፖርቶች",
+      activeTraders: "ንቁ ነጋዴዎች:",
+      reserveLiquidity: "የተቀመጠ ፈሳሽ ገንዘብ:",
+      totalDeposited: "በአጠቃላይ የገባ ገንዘብ:",
+      totalWithdrawn: "በአጠቃላይ የወጣ ገንዘብ:",
+      capitalStaked: "በስራ ላይ ያለ ካፒታል (ኢንቨስት የተደረገ):",
+      exptReturn: "የሚጠበቅ ክፍያ:",
+      tradingEfficiency: "የግብይት ውጤታማነት አመላካች",
+      completedCycles: "የተጠናቀቁ ዑደቶች:",
+      totalVolumeTraded: "በአጠቃላይ የተገበያየ መጠን:",
+      ensureAgentLiquidity: "ለፈጣን ክፍያዎች ወኪሎች በቂ የብር ቀሪ ሂሳብ እንዳላቸው ያረጋግጡ።",
+      authorizedAgentAccounts: "የተፈቀዱ የወኪል አካውንቶች",
+      addAgentBtn: "ወኪል ጨምር",
+      cancelBtn: "ሰርዝ",
+      proTipAgent: "ጠቃሚ ምክር፡ እንደ አዋሽ ባንክ ወኪል ለመመዝገብ በወኪል ስሙ ውስጥ 'Awash' የሚለውን ቃል ያካትቱ። አለበለዚያ እንደ ቴሌብር ወኪል ይመደባሉ።",
+      agentNameLabel: "የወኪሉ/የተጠቃሚው ሙሉ ስም",
+      agentNumberLabel: "የወኪሉ አካውንት ቁጥር",
+      createAgentBtn: "አዲስ ወኪል ፍጠር",
+      noAgentsFound: "ምንም የተፈቀደ የወኪል አካውንት አልተገኘም። ስርዓቱ ወደ መደበኛው ይመለሳል።",
+      submittedTxScreenshot: "የተላከው የክፍያ ማረጋገጫ ደረሰኝ"
+    }
+  };
 
   const fetchAgents = async () => {
     setLoadingAgents(true);
@@ -238,7 +345,7 @@ export default function AdminPanel({
       <div className="max-w-md mx-auto flex items-center justify-between border-b border-zinc-900 pb-4 mb-6">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-[#fbbc05]" />
-          <h1 className="text-sm font-bold font-mono tracking-wider text-zinc-100 uppercase">Admin Console</h1>
+          <h1 className="text-sm font-bold font-mono tracking-wider text-zinc-100 uppercase">{t[lang].adminConsole}</h1>
         </div>
         <button
           onClick={onClose}
@@ -252,14 +359,14 @@ export default function AdminPanel({
         {/* Horizontal Navigation List */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none font-mono">
           {[
-            { id: 'recharges', label: 'Recharges', icon: ArrowDownLeft },
-            { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
-            { id: 'users', label: 'Users', icon: Users },
-            { id: 'plans', label: 'Plans', icon: Settings },
-            { id: 'announcements', label: 'Broadcast', icon: Megaphone },
-            { id: 'investments', label: 'Stakes', icon: FileText },
-            { id: 'agents', label: 'Agents', icon: Smartphone },
-            { id: 'reports', label: 'Reports', icon: BarChart3 },
+            { id: 'recharges', label: t[lang].recharges, icon: ArrowDownLeft },
+            { id: 'withdrawals', label: t[lang].withdrawals, icon: ArrowUpRight },
+            { id: 'users', label: t[lang].users, icon: Users },
+            { id: 'plans', label: t[lang].plans, icon: Settings },
+            { id: 'announcements', label: t[lang].broadcast, icon: Megaphone },
+            { id: 'investments', label: t[lang].stakes, icon: FileText },
+            { id: 'agents', label: t[lang].agents, icon: Smartphone },
+            { id: 'reports', label: t[lang].reports, icon: BarChart3 },
           ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeSubTab === tab.id;
@@ -290,11 +397,11 @@ export default function AdminPanel({
         {/* 1. RECHARGES MANAGEMENT */}
         {activeSubTab === 'recharges' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Pending Recharge Clearances</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].pendingRecharges}</h3>
 
             {deposits.filter((d) => d.status === 'pending').length === 0 ? (
               <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 text-center text-zinc-500 text-xs font-mono">
-                ✅ No pending recharge tickets in ledger.
+                ✅ {t[lang].noPendingRecharges}
               </div>
             ) : (
               <div className="space-y-4">
@@ -365,11 +472,11 @@ export default function AdminPanel({
         {/* 2. WITHDRAWALS MANAGEMENT */}
         {activeSubTab === 'withdrawals' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Pending Withdrawal Payouts</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].pendingWithdrawals}</h3>
 
             {withdrawals.filter((w) => w.status === 'pending').length === 0 ? (
               <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 text-center text-zinc-500 text-xs font-mono">
-                ✅ No pending withdrawal requests in ledger.
+                ✅ {t[lang].noPendingWithdrawals}
               </div>
             ) : (
               <div className="space-y-4">
@@ -427,7 +534,7 @@ export default function AdminPanel({
         {/* 3. USERS AUDITING */}
         {activeSubTab === 'users' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">System Registered Members</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].registeredMembers}</h3>
 
             <div className="space-y-3">
               {users.map((usr) => (
@@ -470,7 +577,7 @@ export default function AdminPanel({
         {activeSubTab === 'plans' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Configure Energy Pools</h3>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].configureEnergyPools}</h3>
               <button
                 onClick={() => {
                   setIsCreatingPlan(true);
@@ -483,7 +590,7 @@ export default function AdminPanel({
                 className="py-1 px-2.5 bg-red-600 hover:bg-red-700 text-white text-[9px] font-mono font-bold uppercase rounded flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add Project
+                {t[lang].addProject}
               </button>
             </div>
 
@@ -502,12 +609,12 @@ export default function AdminPanel({
                 </button>
 
                 <h4 className="text-xs font-bold text-white font-mono uppercase tracking-wider">
-                  {isCreatingPlan ? '⚡ Create New Tesla Pool' : '🛠️ Modify Staking Plan'}
+                  {isCreatingPlan ? t[lang].createTeslaPool : t[lang].modifyStakingPlan}
                 </h4>
 
                 <div className="grid grid-cols-2 gap-3 text-xs font-mono">
                   <div className="col-span-2 space-y-1">
-                    <label className="text-[8px] text-zinc-400 uppercase">Project Display Name</label>
+                    <label className="text-[8px] text-zinc-400 uppercase">{t[lang].projectName}</label>
                     <input
                       type="text"
                       required
@@ -519,7 +626,7 @@ export default function AdminPanel({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[8px] text-zinc-400 uppercase">Capital Amount ($)</label>
+                    <label className="text-[8px] text-zinc-400 uppercase">{t[lang].capitalAmount}</label>
                     <input
                       type="number"
                       required
@@ -531,7 +638,7 @@ export default function AdminPanel({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[8px] text-zinc-400 uppercase">Return Payout ($)</label>
+                    <label className="text-[8px] text-zinc-400 uppercase">{t[lang].returnPayout}</label>
                     <input
                       type="number"
                       required
@@ -543,7 +650,7 @@ export default function AdminPanel({
                   </div>
 
                   <div className="space-y-1 col-span-2">
-                    <label className="text-[8px] text-zinc-400 uppercase">Cycle Duration (Hours)</label>
+                    <label className="text-[8px] text-zinc-400 uppercase">{t[lang].cycleDuration}</label>
                     <input
                       type="number"
                       required
@@ -559,7 +666,7 @@ export default function AdminPanel({
                   type="submit"
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-mono text-[10px] font-bold uppercase py-2.5 rounded-lg transition-colors cursor-pointer"
                 >
-                  Save Contract Specifications
+                  {t[lang].saveContract}
                 </button>
               </form>
             )}
@@ -590,7 +697,7 @@ export default function AdminPanel({
                       }}
                       className="py-1 px-2.5 bg-zinc-900 border border-zinc-800 hover:border-red-600/30 text-zinc-300 hover:text-white text-[9px] rounded-lg cursor-pointer uppercase font-bold"
                     >
-                      Edit
+                      {t[lang].editBtn}
                     </button>
                   </div>
                 </div>
@@ -602,11 +709,11 @@ export default function AdminPanel({
         {/* 5. BROADCAST/ANNOUNCEMENTS */}
         {activeSubTab === 'announcements' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Send Global Bulletins</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].sendGlobalBulletins}</h3>
 
             <form onSubmit={handlePublishAnnouncement} className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-4">
               <div className="space-y-1">
-                <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">Bulletin Title</label>
+                <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].bulletinTitle}</label>
                 <input
                   type="text"
                   required
@@ -618,7 +725,7 @@ export default function AdminPanel({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">Message Text</label>
+                <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].messageText}</label>
                 <textarea
                   required
                   rows={4}
@@ -637,7 +744,7 @@ export default function AdminPanel({
                 {publishingAnn ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  'Transmit Worldwide Broadcast'
+                  t[lang].transmitBroadcast
                 )}
               </button>
             </form>
@@ -647,7 +754,7 @@ export default function AdminPanel({
         {/* 6. INVESTMENTS AUDIT STATEMENT */}
         {activeSubTab === 'investments' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Active Investment Pool Ledger</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].activeInvestmentPool}</h3>
 
             <div className="space-y-3">
               {investments.map((inv) => (
@@ -694,23 +801,23 @@ export default function AdminPanel({
         {activeSubTab === 'agents' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Authorized Agent Accounts</h3>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].authorizedAgentAccounts}</h3>
               <button
                 onClick={() => setIsCreatingAgent(!isCreatingAgent)}
                 className="py-1 px-2 bg-red-600 hover:bg-red-700 text-white rounded font-mono text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
-                {isCreatingAgent ? 'Cancel' : 'Add Agent'}
+                {isCreatingAgent ? t[lang].cancelBtn : t[lang].addAgentBtn}
               </button>
             </div>
 
             {isCreatingAgent && (
               <form onSubmit={handleCreateAgent} className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
                 <div className="bg-red-950/10 border border-red-950/30 p-2.5 rounded-lg text-[9px] text-zinc-400 font-sans leading-normal">
-                  💡 <span className="font-bold text-white uppercase">Pro Tip:</span> Include the word <strong className="text-white">"Awash"</strong> in the Agent Name to register them as an Awash Bank Agent. Otherwise, they will be classified as a Telebirr Agent.
+                  💡 <span className="font-bold text-white uppercase">Pro Tip:</span> {t[lang].proTipAgent}
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">Agent/Beneficiary Name</label>
+                  <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].agentNameLabel}</label>
                   <input
                     type="text"
                     required
@@ -722,7 +829,7 @@ export default function AdminPanel({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">Agent Account/Number</label>
+                  <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].agentNumberLabel}</label>
                   <input
                     type="text"
                     required
@@ -737,7 +844,7 @@ export default function AdminPanel({
                   type="submit"
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-mono font-bold text-[10px] uppercase py-2.5 rounded-lg transition-colors cursor-pointer"
                 >
-                  Create Agent Account
+                  {t[lang].createAgentBtn}
                 </button>
               </form>
             )}
@@ -748,7 +855,7 @@ export default function AdminPanel({
               </div>
             ) : agents.length === 0 ? (
               <div className="bg-zinc-900/20 border border-zinc-800/60 rounded-2xl p-6 text-center text-xs font-mono text-zinc-500">
-                NO AUTHORIZED AGENT ACCOUNTS FOUND. PLATFORM WILL FALL BACK TO SYSTEM DEFAULT.
+                {t[lang].noAgentsFound}
               </div>
             ) : (
               <div className="space-y-2">
@@ -766,7 +873,7 @@ export default function AdminPanel({
                         className={`p-1.5 rounded transition-all cursor-pointer ${
                           ag.is_active 
                             ? 'text-green-500 hover:text-green-400' 
-                            : 'text-zinc-500 hover:text-zinc-400'
+                             : 'text-zinc-500 hover:text-zinc-400'
                         }`}
                         title={ag.is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)'}
                       >
@@ -811,33 +918,33 @@ export default function AdminPanel({
 
           return (
             <div className="space-y-4">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Corporate Investment Reports</h3>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">{t[lang].corporateInvestmentReports}</h3>
               
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 font-mono">
                 <div className="bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-2xl">
-                  <span className="text-[8px] text-zinc-500 uppercase">ACTIVE TRADERS:</span>
+                  <span className="text-[8px] text-zinc-500 uppercase">{t[lang].activeTraders}</span>
                   <span className="text-base text-white font-bold block mt-1">{totalUsers}</span>
                 </div>
                 <div className="bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-2xl">
-                  <span className="text-[8px] text-zinc-500 uppercase">RESERVE LIQUIDITY:</span>
+                  <span className="text-[8px] text-zinc-500 uppercase">{t[lang].reserveLiquidity}</span>
                   <span className={`text-base font-bold block mt-1 ${corporateReserve >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     ${corporateReserve.toFixed(2)}
                   </span>
                 </div>
                 <div className="bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-2xl">
-                  <span className="text-[8px] text-zinc-500 uppercase">TOTAL DEPOSITED:</span>
+                  <span className="text-[8px] text-zinc-500 uppercase">{t[lang].totalDeposited}</span>
                   <span className="text-base text-blue-500 font-bold block mt-1">${totalApprovedDeposits.toFixed(2)}</span>
                 </div>
                 <div className="bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-2xl">
-                  <span className="text-[8px] text-zinc-500 uppercase">TOTAL WITHDRAWN:</span>
+                  <span className="text-[8px] text-zinc-500 uppercase">{t[lang].totalWithdrawn}</span>
                   <span className="text-base text-red-500 font-bold block mt-1">${totalApprovedWithdrawals.toFixed(2)}</span>
                 </div>
                 <div className="bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-2xl col-span-2">
-                  <span className="text-[8px] text-zinc-500 uppercase">CAPITAL UNDER MANAGEMENT (STAKED):</span>
+                  <span className="text-[8px] text-zinc-500 uppercase">{t[lang].capitalStaked}</span>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-lg text-orange-500 font-bold">${activeInvAmt.toFixed(2)}</span>
-                    <span className="text-[9px] text-zinc-500 uppercase font-sans">EXPT. RETURN: ${activeExpectedPayout.toFixed(2)}</span>
+                    <span className="text-[9px] text-zinc-500 uppercase font-sans">{t[lang].exptReturn} ${activeExpectedPayout.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -846,15 +953,15 @@ export default function AdminPanel({
               <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 space-y-3 font-mono">
                 <h4 className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                  Forex Trading Efficiency Indicator
+                  {t[lang].tradingEfficiency}
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-[10px]">
                   <div className="p-2.5 bg-zinc-900/50 rounded-xl font-sans">
-                    <span className="text-zinc-500 block">COMPLETED CYCLES:</span>
+                    <span className="text-zinc-500 block">{t[lang].completedCycles}</span>
                     <span className="text-white font-mono font-bold block mt-0.5">{investments.filter(i => i.status === 'completed').length} plans</span>
                   </div>
                   <div className="p-2.5 bg-zinc-900/50 rounded-xl font-sans">
-                    <span className="text-zinc-500 block">TOTAL VOLUME TRADED:</span>
+                    <span className="text-zinc-500 block">{t[lang].totalVolumeTraded}</span>
                     <span className="text-white font-mono font-bold block mt-0.5">${(totalApprovedDeposits + totalCompletedAmt).toFixed(2)}</span>
                   </div>
                 </div>
@@ -862,7 +969,7 @@ export default function AdminPanel({
                 <div className="p-3 bg-red-950/10 border border-red-950/30 rounded-xl text-[10px] text-zinc-400 leading-normal flex gap-2 font-sans">
                   <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                   <span>
-                    Ensure managed agent accounts hold appropriate ETB liquidity matching these figures for rapid physical-to-digital settlements.
+                    {t[lang].ensureAgentLiquidity}
                   </span>
                 </div>
               </div>
@@ -887,7 +994,7 @@ export default function AdminPanel({
             referrerPolicy="no-referrer"
             className="max-w-full max-h-[80vh] object-contain rounded-xl border border-zinc-800 shadow-2xl"
           />
-          <p className="text-xs font-mono text-zinc-400 mt-4 uppercase">Submitted Transaction Screenshot</p>
+          <p className="text-xs font-mono text-zinc-400 mt-4 uppercase">{t[lang].submittedTxScreenshot}</p>
         </div>
       )}
     </div>

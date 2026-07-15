@@ -239,7 +239,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         {/* Simulate phone wrapper on desktop screen, full-bleed on mobile */}
         <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-white text-slate-900 relative md:my-6">
-          <AuthScreen onAuthSuccess={handleAuthSuccess} showToast={showToast} />
+          <AuthScreen onAuthSuccess={handleAuthSuccess} showToast={showToast} lang={lang} setLang={setLang} />
           
           {/* Floating Toast notification popup inside the phone view */}
           <div className="absolute top-4 left-4 right-4 z-50 space-y-2 pointer-events-none">
@@ -281,7 +281,7 @@ export default function App() {
         <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-1.5 text-slate-900">
             <span className="w-2 h-2 rounded-full bg-[#fbbc05] animate-ping shadow-[0_0_6px_#fbbc05]" />
-            <span className="text-[10px] font-mono tracking-widest uppercase font-bold">Tesla Inv Co.</span>
+            <span className="text-[10px] font-mono tracking-widest uppercase font-bold">TESLA INVESTMENT LIMITED</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -335,11 +335,6 @@ export default function App() {
                 </svg>
               </div>
             </div>
-
-            <div className="flex items-center gap-1 text-[9px] text-slate-500 font-mono">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>SECURED</span>
-            </div>
           </div>
         </div>
 
@@ -368,6 +363,7 @@ export default function App() {
                 showToast={showToast}
                 currency={currency}
                 formatAmount={formatAmount}
+                lang={lang}
               />
             )}
             {activeTab === 'wallet' && (
@@ -381,6 +377,7 @@ export default function App() {
                 showToast={showToast}
                 currency={currency}
                 formatAmount={formatAmount}
+                lang={lang}
               />
             )}
             {activeTab === 'profile' && (
@@ -391,6 +388,7 @@ export default function App() {
                 onOpenAdmin={() => setShowAdmin(true)}
                 currency={currency}
                 formatAmount={formatAmount}
+                lang={lang}
               />
             )}
           </AnimatePresence>
@@ -459,6 +457,7 @@ export default function App() {
           setActiveTab={setActiveTab}
           isAdmin={user.is_admin === true}
           onOpenAdmin={() => setShowAdmin(true)}
+          lang={lang}
         />
 
         {/* 4. OVERLAY ADMIN PANEL WINDOW */}
@@ -483,6 +482,7 @@ export default function App() {
                 transactions={transactions}
                 onRefreshData={() => loadPlatformData(user)}
                 showToast={showToast}
+                lang={lang}
               />
             </motion.div>
           )}

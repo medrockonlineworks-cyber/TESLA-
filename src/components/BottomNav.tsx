@@ -5,14 +5,20 @@ interface BottomNavProps {
   setActiveTab: (tab: 'home' | 'invest' | 'wallet' | 'profile') => void;
   isAdmin: boolean;
   onOpenAdmin: () => void;
+  lang: 'en' | 'am';
 }
 
-export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmin }: BottomNavProps) {
+export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmin, lang }: BottomNavProps) {
+  const labels = {
+    en: { home: 'Home', invest: 'Invest', wallet: 'Wallet', profile: 'Profile' },
+    am: { home: 'ቤት', invest: 'ኢንቨስት', wallet: 'ዋሌት', profile: 'ፕሮፋይል' },
+  };
+
   const tabs = [
-    { id: 'home' as const, label: 'Home', icon: Home },
-    { id: 'invest' as const, label: 'Invest', icon: Zap },
-    { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
-    { id: 'profile' as const, label: 'Profile', icon: User },
+    { id: 'home' as const, label: labels[lang].home, icon: Home },
+    { id: 'invest' as const, label: labels[lang].invest, icon: Zap },
+    { id: 'wallet' as const, label: labels[lang].wallet, icon: Wallet },
+    { id: 'profile' as const, label: labels[lang].profile, icon: User },
   ];
 
   return (

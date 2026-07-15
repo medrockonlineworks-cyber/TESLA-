@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DbUser, Deposit, Withdrawal, Transaction, AgentAccount } from '../types';
-import { Wallet, Copy, Upload, ArrowUpRight, ArrowDownLeft, FileText, CheckCircle, Smartphone, Clock, XCircle, Users, HelpCircle, Landmark } from 'lucide-react';
+import { Wallet, Copy, Upload, ArrowUpRight, ArrowDownLeft, FileText, Smartphone, Landmark, HelpCircle } from 'lucide-react';
 import { dbService } from '../services/db';
 
 interface WalletTabProps {
@@ -13,6 +13,7 @@ interface WalletTabProps {
   showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
   currency: 'USD' | 'ETB';
   formatAmount: (usdValue: number, fractionDigits?: number) => string;
+  lang: 'en' | 'am';
 }
 
 export default function WalletTab({
@@ -25,6 +26,7 @@ export default function WalletTab({
   showToast,
   currency,
   formatAmount,
+  lang,
 }: WalletTabProps) {
   const [subTab, setSubTab] = useState<'recharge' | 'withdraw' | 'ledger'>('recharge');
   
@@ -48,6 +50,106 @@ export default function WalletTab({
   // Fallback Telebirr Details
   const TELEBIRR_MERCHANT_NAME = "TESLA INVESTMENT LIMITED (HQ)";
   const TELEBIRR_MERCHANT_NUMBER = "0926193920";
+
+  // Translation dictionary for Wallet Tab
+  const t = {
+    en: {
+      title: "Tesla",
+      subTitle: "Wallet",
+      balance: "Balance",
+      inflows: "Inflows",
+      outflows: "Outflows",
+      recharge: "Recharge",
+      withdraw: "Withdraw",
+      ledger: "Ledger",
+      guideTitle: "How Agent Recharge Works",
+      guide1: "Choose your preferred agent network: Telebirr Agent or Awash Bank Agent.",
+      guide2: "Transfer money to the authorized agent's number listed below.",
+      guide3: "Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).",
+      guide4: "Enter your unique transaction reference ID (TxID) and upload a screenshot of your successful transaction receipt.",
+      guide5: "Submit your deposit ticket. Our system administrators will verify the payment and credit your balance within 10-15 minutes!",
+      selectNetwork: "Select Agent Network",
+      telebirrAgent: "Telebirr Agent",
+      awashAgent: "Awash Agent",
+      authorizedAgent: "Authorized Agent",
+      noActiveAgents: "No active agents configured yet.",
+      agentName: "Agent Name:",
+      agentAccount: "Agent Account / Number:",
+      amountUsd: "Amount (USD)",
+      amountPlaceholder: "Enter amount (e.g. 50)",
+      equivalentEtb: "Equivalent ETB",
+      rateText: "Rate: 1 USD = 120 ETB",
+      txidLabel: "Transaction ID (TxID)",
+      txidPlaceholder: "Enter Transaction ID",
+      receiptLabel: "Receipt Screenshot",
+      readyUpload: "Ready to upload",
+      uploadPrompt: "Upload Transaction Receipt",
+      uploadMeta: "JPEG/PNG, Max 2MB",
+      submitTicket: "Submit Deposit Ticket",
+      submitting: "Submitting...",
+      liquidCapital: "CBE LIQUID CAPITAL:",
+      withdrawAmountLabel: "Amount (USD)",
+      withdrawPlaceholder: "Enter amount to withdraw",
+      cbeAccountLabel: "CBE Bank Account Number",
+      cbeAccountPlaceholder: "e.g. 1000123456789",
+      holderNameLabel: "Account Holder Full Name",
+      holderNamePlaceholder: "Name registered on bank account",
+      withdrawNotice: "Double check your CBE account details. Withdrawals to incorrect account numbers cannot be reversed once approved by the administrators.",
+      submitWithdraw: "Submit Withdrawal Request",
+      noHistory: "No history",
+      pendingRequests: "Pending Requests",
+      depositsLabel: "Deposits",
+      withdrawalsLabel: "Withdrawals"
+    },
+    am: {
+      title: "ቴስላ",
+      subTitle: "ዋሌት",
+      balance: "ቀሪ ሂሳብ",
+      inflows: "ገቢዎች",
+      outflows: "ወጪዎች",
+      recharge: "ገንዘብ አስገባ",
+      withdraw: "ገንዘብ አውጣ",
+      ledger: "ግብይቶች",
+      guideTitle: "የወኪል ተቀማጭ እንዴት ይሰራል?",
+      guide1: "የመረጡትን የወኪል አውታር ይምረጡ: ቴሌብር ወኪል ወይም አዋሽ ባንክ ወኪል::",
+      guide2: "ከታች ባለው በተፈቀደው የወኪል ቁጥር ላይ ገንዘቡን ያስተላልፉ::",
+      guide3: "ትክክለኛውን የተቀማጭ መጠን በUSD ያስገቡ (በራስ-ሰር ተመጣጣኝ የብር መጠን ያሰላል)::",
+      guide4: "የግብይት መለያ ቁጥር (TxID) ያስገቡ እና የደረሰኝ ፎቶ ያያይዙ::",
+      guide5: "የተቀማጭ ወረቀቱን ያስገቡ:: አስተዳዳሪዎች ክፍያውን አረጋግጠው በ10-15 ደቂቃዎች ውስጥ ወደ ሂሳብዎ ያስገባሉ!",
+      selectNetwork: "የወኪል አውታር ይምረጡ",
+      telebirrAgent: "ቴሌብር ወኪል",
+      awashAgent: "አዋሽ ባንክ ወኪል",
+      authorizedAgent: "የተፈቀደ ወኪል",
+      noActiveAgents: "ምንም ገባሪ ወኪል አልተገኘም::",
+      agentName: "የወኪል ስም:",
+      agentAccount: "የወኪል ሂሳብ / ስልክ ቁጥር:",
+      amountUsd: "መጠን (በዶላር)",
+      amountPlaceholder: "መጠን ያስገቡ (ለምሳሌ 50)",
+      equivalentEtb: "ተመጣጣኝ የኢትዮጵያ ብር",
+      rateText: "ተመን: 1 USD = 120 ETB",
+      txidLabel: "የማስተላለፊያ መለያ (TxID)",
+      txidPlaceholder: "የማስተላለፊያ መለያ ቁጥር ያስገቡ",
+      receiptLabel: "የደረሰኝ ፎቶ",
+      readyUpload: "ለመጫን ዝግጁ ነው",
+      uploadPrompt: "የማስተላለፊያ ደረሰኝ ይጫኑ",
+      uploadMeta: "JPEG/PNG, ቢበዛ 2MB",
+      submitTicket: "የተቀማጭ ወረቀቱን ያስገቡ",
+      submitting: "በማስገባት ላይ...",
+      liquidCapital: "ያለዎት ተንቀሳቃሽ ካፒታል:",
+      withdrawAmountLabel: "መጠን (በዶላር)",
+      withdrawPlaceholder: "የሚያወጡትን መጠን ያስገቡ",
+      cbeAccountLabel: "CBE ባንክ ሂሳብ ቁጥር",
+      cbeAccountPlaceholder: "ለምሳሌ 1000123456789",
+      holderNameLabel: "የሂሳብ ባለቤት ሙሉ ስም",
+      holderNamePlaceholder: "በባንክ ሂሳቡ ላይ የተመዘገበ ስም",
+      withdrawNotice: "የ CBE ሂሳብ ዝርዝሮችን በጥንቃቄ ያረጋግጡ:: አንዴ በአስተዳዳሪ ከተፈቀደ ስህተት የባንክ ሂሳቦች ሊመለሱ አይችሉም::",
+      submitWithdraw: "የማውጫ ጥያቄ ያቅርቡ",
+      noHistory: "ምንም ታሪክ የለም",
+      pendingRequests: "በመጠባበቅ ላይ ያሉ ጥያቄዎች",
+      depositsLabel: "ተቀማጭ ገንዘቦች",
+      withdrawalsLabel: "ወጪዎች"
+    }
+  };
 
   // Load active agent accounts
   useEffect(() => {
@@ -90,7 +192,12 @@ export default function WalletTab({
   const handleCopyMerchantNumber = () => {
     const numToCopy = currentAgent ? currentAgent.agent_number : TELEBIRR_MERCHANT_NUMBER;
     navigator.clipboard.writeText(numToCopy);
-    showToast(`Agent number (${numToCopy}) copied to clipboard!`, 'success');
+    showToast(
+      lang === 'en' 
+        ? `Agent number (${numToCopy}) copied to clipboard!` 
+        : `የወኪሉ ስልክ ቁጥር (${numToCopy}) ወደ ክሊፕቦርድ ተገልብጧል!`, 
+      'success'
+    );
   };
 
   // Handle File Upload and convert to Base64
@@ -99,14 +206,14 @@ export default function WalletTab({
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      showToast('Image size must be less than 2MB', 'error');
+      showToast(lang === 'en' ? 'Image size must be less than 2MB' : 'የፎቶው መጠን ከ2MB በታች መሆን አለበት', 'error');
       return;
     }
 
     const reader = new FileReader();
     reader.onloadend = () => {
       setScreenshotBase64(reader.result as string);
-      showToast('Screenshot loaded successfully!', 'success');
+      showToast(lang === 'en' ? 'Screenshot loaded successfully!' : 'የደረሰኙ ፎቶ በተሳካ ሁኔታ ተጭኗል!', 'success');
     };
     reader.readAsDataURL(file);
   };
@@ -115,27 +222,31 @@ export default function WalletTab({
     e.preventDefault();
     const amountNum = parseFloat(depositAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      showToast('Please enter a valid deposit amount.', 'error');
+      showToast(lang === 'en' ? 'Please enter a valid deposit amount.' : 'እባክዎ ትክክለኛ የተቀማጭ መጠን ያስገቡ::', 'error');
       return;
     }
     if (!transactionId.trim()) {
-      showToast('Please enter the transaction reference ID.', 'error');
+      showToast(lang === 'en' ? 'Please enter the transaction reference ID.' : 'እባክዎ የማስተላለፊያ መለያ ቁጥር ያስገቡ::', 'error');
       return;
     }
     if (!screenshotBase64) {
-      showToast('Please upload a screenshot of your payment receipt.', 'error');
+      showToast(lang === 'en' ? 'Please upload a screenshot of your payment receipt.' : 'እባክዎ የክፍያ ደረሰኙን ፎቶ ይጫኑ::', 'error');
       return;
     }
 
     setRecharging(true);
     try {
-      // Find selected agent details from filtered ones
       const agent = filteredAgents.find(a => a.id === selectedAgentId) || filteredAgents[0];
       const agentId = agent?.id;
       const agentInfo = agent ? `${agent.agent_name} (${agent.agent_number})` : `${TELEBIRR_MERCHANT_NAME} (${TELEBIRR_MERCHANT_NUMBER})`;
 
       await onDepositSubmit(amountNum, transactionId.trim(), screenshotBase64, agentId, agentInfo);
-      showToast('Deposit request submitted! Admins will verify it shortly.', 'success');
+      showToast(
+        lang === 'en' 
+          ? 'Deposit request submitted! Admins will verify it shortly.' 
+          : 'የተቀማጭ ጥያቄዎ ገብቷል! አስተዳዳሪዎች በአጭር ጊዜ ውስጥ ያረጋግጡታል::', 
+        'success'
+      );
       setDepositAmount('');
       setTransactionId('');
       setScreenshotBase64('');
@@ -150,19 +261,19 @@ export default function WalletTab({
     e.preventDefault();
     const amountNum = parseFloat(withdrawAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      showToast('Please enter a valid withdrawal amount.', 'error');
+      showToast(lang === 'en' ? 'Please enter a valid withdrawal amount.' : 'እባክዎ ትክክለኛ የማውጫ መጠን ያስገቡ::', 'error');
       return;
     }
     if (amountNum > user.balance) {
-      showToast('Insufficient wallet balance to perform this withdrawal.', 'error');
+      showToast(lang === 'en' ? 'Insufficient wallet balance to perform this withdrawal.' : 'ለማውጣት በቂ ቀሪ ሂሳብ የለዎትም::', 'error');
       return;
     }
     if (!cbeAccount.trim() || cbeAccount.trim().length < 10) {
-      showToast('Please enter a valid CBE Account Number (minimum 10 digits).', 'error');
+      showToast(lang === 'en' ? 'Please enter a valid CBE Account Number (minimum 10 digits).' : 'እባክዎ ትክክለኛ የ CBE ባንክ ሂሳብ ቁጥር ያስገቡ (ቢያንስ 10 አሃዞች)::', 'error');
       return;
     }
     if (!cbeHolderName.trim()) {
-      showToast('Please enter the CBE account holder\'s full name.', 'error');
+      showToast(lang === 'en' ? "Please enter the CBE account holder's full name." : 'እባክዎ የባንክ ሂሳብ ባለቤቱን ሙሉ ስም ያስገቡ::', 'error');
       return;
     }
 
@@ -170,7 +281,12 @@ export default function WalletTab({
     try {
       const formattedCbeInfo = `CBE: ${cbeAccount.trim()} (${cbeHolderName.trim()})`;
       await onWithdrawSubmit(amountNum, formattedCbeInfo);
-      showToast('CBE Withdrawal request submitted! Funds are locked in escrow.', 'success');
+      showToast(
+        lang === 'en' 
+          ? 'CBE Withdrawal request submitted! Funds are locked in escrow.' 
+          : 'የ CBE ማውጫ ጥያቄዎ በተሳካ ሁኔታ ገብቷል!', 
+        'success'
+      );
       setWithdrawAmount('');
       setCbeAccount('');
       setCbeHolderName('');
@@ -195,7 +311,7 @@ export default function WalletTab({
       {/* Tab Title */}
       <div>
         <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-          Tesla <span className="text-amber-600 font-extrabold">Wallet</span>
+          {t[lang].title} <span className="text-amber-600 font-extrabold">{t[lang].subTitle}</span>
         </h2>
       </div>
 
@@ -205,7 +321,7 @@ export default function WalletTab({
           <Wallet className="w-4 h-4" />
         </div>
 
-        <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">Balance</span>
+        <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">{t[lang].balance}</span>
         <div className="text-3xl font-black tracking-tight text-white font-mono mt-1">
           {formatAmount(user.balance, 2)}
         </div>
@@ -213,14 +329,14 @@ export default function WalletTab({
         {/* Detailed subdivision of funds */}
         <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-800 text-xs font-mono">
           <div>
-            <span className="text-[8px] text-slate-400 uppercase block">Inflows</span>
+            <span className="text-[8px] text-slate-400 uppercase block">{t[lang].inflows}</span>
             <span className="text-emerald-400 font-bold block mt-0.5 flex items-center gap-0.5">
               <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-400" />
               {formatAmount(totalDepositsApproved, 2)}
             </span>
           </div>
           <div>
-            <span className="text-[8px] text-slate-400 uppercase block">Outflows</span>
+            <span className="text-[8px] text-slate-400 uppercase block">{t[lang].outflows}</span>
             <span className="text-red-400 font-bold block mt-0.5 flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5 text-red-400" />
               {formatAmount(totalWithdrawalsApproved, 2)}
@@ -237,7 +353,7 @@ export default function WalletTab({
             subTab === 'recharge' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          Recharge
+          {t[lang].recharge}
         </button>
         <button
           onClick={() => setSubTab('withdraw')}
@@ -245,7 +361,7 @@ export default function WalletTab({
             subTab === 'withdraw' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          Withdraw
+          {t[lang].withdraw}
         </button>
         <button
           onClick={() => setSubTab('ledger')}
@@ -253,7 +369,7 @@ export default function WalletTab({
             subTab === 'ledger' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          Ledger
+          {t[lang].ledger}
         </button>
       </div>
 
@@ -264,14 +380,14 @@ export default function WalletTab({
           <div className="bg-amber-500/5 border border-amber-500/10 rounded-3xl p-4 space-y-2 text-xs text-slate-600 shadow-sm">
             <div className="flex items-center gap-1.5 font-bold text-amber-700 uppercase tracking-wider text-[10px]">
               <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>How Agent Recharge Works</span>
+              <span>{t[lang].guideTitle}</span>
             </div>
             <ol className="list-decimal list-inside space-y-1.5 text-slate-600 leading-normal text-[11px] font-sans pl-0.5">
-              <li>Choose your preferred agent network: <strong className="text-amber-700">Telebirr Agent</strong> or <strong className="text-amber-700">Awash Bank Agent</strong>.</li>
-              <li>Visit or contact any physical agent nearby or transfer money to the authorized agent's number listed below.</li>
-              <li>Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).</li>
-              <li>Enter your unique transaction reference ID (TxID) and upload a screenshot of your successful transaction receipt.</li>
-              <li>Submit your deposit ticket. Our system administrators will verify the payment and credit your balance within 10-15 minutes!</li>
+              <li>{t[lang].guide1}</li>
+              <li>{t[lang].guide2}</li>
+              <li>{t[lang].guide3}</li>
+              <li>{t[lang].guide4}</li>
+              <li>{t[lang].guide5}</li>
             </ol>
           </div>
 
@@ -279,7 +395,7 @@ export default function WalletTab({
             {/* Agent Type Segmented Picker */}
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                Select Agent Network
+                {t[lang].selectNetwork}
               </label>
               <div className="bg-slate-50 p-1 rounded-xl border border-slate-200 grid grid-cols-2 gap-1">
                 <button
@@ -289,7 +405,7 @@ export default function WalletTab({
                     agentType === 'telebirr' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Telebirr Agent
+                  {t[lang].telebirrAgent}
                 </button>
                 <button
                   type="button"
@@ -298,7 +414,7 @@ export default function WalletTab({
                     agentType === 'awash' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Awash Agent
+                  {t[lang].awashAgent}
                 </button>
               </div>
             </div>
@@ -307,7 +423,7 @@ export default function WalletTab({
             {filteredAgents.length > 0 ? (
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                  Authorized {agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'} Agent
+                  {t[lang].authorizedAgent} ({agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'})
                 </label>
                 <select
                   value={selectedAgentId}
@@ -323,20 +439,20 @@ export default function WalletTab({
               </div>
             ) : (
               <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] text-slate-500 text-center">
-                No active {agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'} agents configured yet.
+                {t[lang].noActiveAgents}
               </div>
             )}
             
             {/* Payment Details Box */}
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-2.5 text-[11px]">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 uppercase font-bold text-[10px]">Agent Name:</span>
+                <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentName}</span>
                 <span className="text-slate-800 font-extrabold">
                   {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Tesla Awash Agent')}
                 </span>
               </div>
               <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
-                <span className="text-slate-500 uppercase font-bold text-[10px]">Agent Account / Number:</span>
+                <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentAccount}</span>
                 <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
                   <span className="text-emerald-700 font-mono font-extrabold">
                     {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '0132049581900')}
@@ -354,29 +470,29 @@ export default function WalletTab({
 
             {/* Amount Field */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Amount (USD)</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].amountUsd}</label>
               <input
                 type="number"
                 required
-                placeholder="Enter amount (e.g. 50)"
+                placeholder={t[lang].amountPlaceholder}
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
                 className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
               />
               {depositAmount && !isNaN(parseFloat(depositAmount)) && (
                 <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
-                  ≈ {(parseFloat(depositAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">(Rate: 1 USD = 120 ETB)</span>
+                  ≈ {(parseFloat(depositAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">({t[lang].rateText})</span>
                 </div>
               )}
             </div>
 
             {/* TxID Field */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Transaction ID (TxID)</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].txidLabel}</label>
               <input
                 type="text"
                 required
-                placeholder="Enter Transaction ID"
+                placeholder={t[lang].txidPlaceholder}
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
                 className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
@@ -385,7 +501,7 @@ export default function WalletTab({
 
             {/* Image Selector */}
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Receipt Screenshot</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].receiptLabel}</label>
               
               <div className="border border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 flex flex-col items-center justify-center relative hover:border-[#fbbc05]/60 transition-colors">
                 <input
@@ -403,13 +519,13 @@ export default function WalletTab({
                       referrerPolicy="no-referrer"
                       className="h-28 mx-auto object-cover rounded-lg border border-slate-200"
                     />
-                    <p className="text-[10px] text-emerald-600 font-bold">Ready to upload</p>
+                    <p className="text-[10px] text-emerald-600 font-bold">{t[lang].readyUpload}</p>
                   </div>
                 ) : (
                   <>
                     <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                    <span className="text-xs font-bold text-slate-600">Upload Transaction Receipt</span>
-                    <span className="text-[9px] text-slate-400 mt-1">JPEG/PNG, Max 2MB</span>
+                    <span className="text-xs font-bold text-slate-600">{t[lang].uploadPrompt}</span>
+                    <span className="text-[9px] text-slate-400 mt-1">{t[lang].uploadMeta}</span>
                   </>
                 )}
               </div>
@@ -424,7 +540,7 @@ export default function WalletTab({
             {recharging ? (
               <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
             ) : (
-              'Submit Deposit Ticket'
+              t[lang].submitTicket
             )}
           </button>
         </form>
@@ -438,26 +554,26 @@ export default function WalletTab({
             <div className="flex justify-between items-center p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl text-xs text-slate-600">
               <span className="text-slate-500 flex items-center gap-1.5 font-bold">
                 <Landmark className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                CBE LIQUID CAPITAL:
+                {t[lang].liquidCapital}
               </span>
               <span className="text-emerald-700 font-black font-mono">{formatAmount(user.balance, 2)}</span>
             </div>
 
             {/* Withdrawal Amount */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Amount (USD)</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].withdrawAmountLabel}</label>
               <input
                 type="number"
                 required
                 max={user.balance}
-                placeholder="Enter amount to withdraw"
+                placeholder={t[lang].withdrawPlaceholder}
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
                 className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
               />
               {withdrawAmount && !isNaN(parseFloat(withdrawAmount)) && (
                 <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
-                  ≈ {(parseFloat(withdrawAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">(Rate: 1 USD = 120 ETB)</span>
+                  ≈ {(parseFloat(withdrawAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">({t[lang].rateText})</span>
                 </div>
               )}
             </div>
@@ -465,12 +581,12 @@ export default function WalletTab({
             {/* CBE Account Number */}
             <div className="space-y-1">
               <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                CBE Bank Account Number
+                {t[lang].cbeAccountLabel}
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. 1000123456789"
+                placeholder={t[lang].cbeAccountPlaceholder}
                 value={cbeAccount}
                 onChange={(e) => setCbeAccount(e.target.value.replace(/\D/g, ''))}
                 className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
@@ -480,12 +596,12 @@ export default function WalletTab({
             {/* CBE Account Holder Name */}
             <div className="space-y-1">
               <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                Account Holder Full Name
+                {t[lang].holderNameLabel}
               </label>
               <input
                 type="text"
                 required
-                placeholder="Name registered on bank account"
+                placeholder={t[lang].holderNamePlaceholder}
                 value={cbeHolderName}
                 onChange={(e) => setCbeHolderName(e.target.value)}
                 className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-sans"
@@ -493,7 +609,7 @@ export default function WalletTab({
             </div>
 
             <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-800 rounded-2xl text-[10.5px] leading-normal font-sans">
-              ⚠️ <span className="font-bold">Important Notice:</span> Double check your CBE account details. Withdrawals to incorrect account numbers cannot be reversed once approved by the administrators.
+              ⚠️ <span className="font-bold">Important Notice:</span> {t[lang].withdrawNotice}
             </div>
           </div>
 
@@ -505,7 +621,7 @@ export default function WalletTab({
             {withdrawing ? (
               <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
             ) : (
-              'Submit Withdrawal Request'
+              t[lang].submitWithdraw
             )}
           </button>
         </form>
@@ -517,13 +633,44 @@ export default function WalletTab({
           {transactions.length === 0 ? (
             <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm">
               <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <h4 className="text-xs font-bold text-slate-400 uppercase">No history</h4>
+              <h4 className="text-xs font-bold text-slate-400 uppercase">{t[lang].noHistory}</h4>
             </div>
           ) : (
             <div className="space-y-3">
               {transactions.map((tx) => {
                 const isPositive = tx.amount > 0;
                 
+                const getTranslatedType = () => {
+                  if (tx.type === 'deposit') return lang === 'am' ? 'ተቀማጭ' : 'Deposit';
+                  if (tx.type === 'withdrawal') return lang === 'am' ? 'ወጪ' : 'Withdrawal';
+                  if (tx.type === 'profit') return lang === 'am' ? 'ትርፍ' : 'Profit';
+                  if (tx.type === 'bonus') return lang === 'am' ? 'ቦነስ' : 'Bonus';
+                  return tx.type;
+                };
+
+                const getTranslatedDescription = () => {
+                  // Translate common system ledger messages
+                  let desc = tx.description;
+                  if (lang === 'am') {
+                    if (desc.includes('Approved deposit')) {
+                      return desc.replace('Approved deposit', 'የጸደቀ ተቀማጭ');
+                    }
+                    if (desc.includes('Withdrawal request approved')) {
+                      return 'የወጪ ጥያቄ ጸድቋል';
+                    }
+                    if (desc.includes('Staking capital escrow')) {
+                      return 'የኮንትራት መዋጮ ማስያዣ';
+                    }
+                    if (desc.includes('Investment plan contract matured')) {
+                      return 'የኢንቨስትመንት ኮንትራት ተጠናቋል';
+                    }
+                    if (desc.includes('Admin credit adjustment')) {
+                      return 'የአስተዳዳሪ ቀሪ ሂሳብ ማስተካከያ';
+                    }
+                  }
+                  return desc;
+                };
+
                 return (
                   <div
                     key={tx.id}
@@ -546,9 +693,9 @@ export default function WalletTab({
 
                     <div className="pl-2.5">
                       <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider block">
-                        {tx.type} • {new Date(tx.created_at).toLocaleDateString()}
+                        {getTranslatedType()} • {new Date(tx.created_at).toLocaleDateString()}
                       </span>
-                      <h4 className="text-xs font-bold text-slate-800 mt-0.5 tracking-tight">{tx.description}</h4>
+                      <h4 className="text-xs font-bold text-slate-800 mt-0.5 tracking-tight">{getTranslatedDescription()}</h4>
                     </div>
 
                     <div className="text-right">
@@ -569,62 +716,78 @@ export default function WalletTab({
 
           {/* Special Verification Log showing user's requests */}
           <div className="border-t border-slate-200 pt-6 space-y-4">
-            <h4 className="text-xs uppercase text-slate-500 px-1 font-extrabold">Pending Requests</h4>
+            <h4 className="text-xs uppercase text-slate-500 px-1 font-extrabold">{t[lang].pendingRequests}</h4>
             
             {/* Deposits Tickets list */}
             {deposits.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">Deposits</span>
-                {deposits.map((dep) => (
-                  <div key={dep.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
-                    <div>
-                      <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(dep.amount, 2)}</span>
-                      <span className="text-slate-400 block text-[9px] mt-0.5 font-mono">TxID: {dep.transaction_id}</span>
-                      {dep.agent_account_info && (
-                        <span className="text-slate-500 block text-[8px] mt-0.5 font-sans">
-                          Agent: {dep.agent_account_info}
-                        </span>
-                      )}
+                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">{t[lang].depositsLabel}</span>
+                {deposits.map((dep) => {
+                  const getStatusText = () => {
+                    if (dep.status === 'pending') return lang === 'am' ? 'በመጠባበቅ ላይ' : 'Pending';
+                    if (dep.status === 'approved') return lang === 'am' ? 'የጸደቀ' : 'Approved';
+                    return lang === 'am' ? 'የተሰረዘ' : 'Declined';
+                  };
+
+                  return (
+                    <div key={dep.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
+                      <div>
+                        <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(dep.amount, 2)}</span>
+                        <span className="text-slate-400 block text-[9px] mt-0.5 font-mono">TxID: {dep.transaction_id}</span>
+                        {dep.agent_account_info && (
+                          <span className="text-slate-500 block text-[8px] mt-0.5 font-sans">
+                            {lang === 'am' ? 'ወኪል:' : 'Agent:'} {dep.agent_account_info}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                        dep.status === 'pending'
+                          ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
+                          : dep.status === 'approved'
+                          ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
+                          : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
+                      }`}>
+                        {getStatusText()}
+                      </span>
                     </div>
-                    
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                      dep.status === 'pending'
-                        ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
-                        : dep.status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
-                    }`}>
-                      {dep.status}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {/* Withdrawals Tickets list */}
             {withdrawals.length > 0 && (
               <div className="space-y-2 mt-4">
-                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">Withdrawals</span>
-                {withdrawals.map((wd) => (
-                  <div key={wd.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
-                    <div>
-                      <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(wd.amount, 2)}</span>
-                      <span className="text-slate-400 block text-[9px] mt-0.5">
-                        {wd.telebirr_number.startsWith('CBE') ? wd.telebirr_number : `Tel: ${wd.telebirr_number}`}
+                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">{t[lang].withdrawalsLabel}</span>
+                {withdrawals.map((wd) => {
+                  const getStatusText = () => {
+                    if (wd.status === 'pending') return lang === 'am' ? 'በመጠባበቅ ላይ' : 'Pending';
+                    if (wd.status === 'approved') return lang === 'am' ? 'የጸደቀ' : 'Approved';
+                    return lang === 'am' ? 'የተሰረዘ' : 'Declined';
+                  };
+
+                  return (
+                    <div key={wd.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
+                      <div>
+                        <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(wd.amount, 2)}</span>
+                        <span className="text-slate-400 block text-[9px] mt-0.5">
+                          {wd.telebirr_number.startsWith('CBE') ? wd.telebirr_number : `Tel: ${wd.telebirr_number}`}
+                        </span>
+                      </div>
+                      
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                        wd.status === 'pending'
+                          ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
+                          : wd.status === 'approved'
+                          ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
+                          : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
+                      }`}>
+                        {getStatusText()}
                       </span>
                     </div>
-                    
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                      wd.status === 'pending'
-                        ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
-                        : wd.status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
-                    }`}>
-                      {wd.status}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
