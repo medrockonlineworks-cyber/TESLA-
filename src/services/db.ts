@@ -307,6 +307,95 @@ export const dbService = {
     }
   },
 
+  async signInWithGoogle(uid: string, fullName: string, email: string): Promise<{ user: DbUser | null; error: string | null }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        // Fetch existing user profile
+        const { data: profile, error: profileErr } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', uid)
+          .single();
+
+        if (profileErr) {
+          // If profile table doesn't exist yet or user not found, create profile
+          const isAdmin = email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com';
+          const newProfile: DbUser = {
+            id: uid,
+            full_name: fullName,
+            email: email.toLowerCase(),
+            balance: 30, // Give them $30 welcome bonus
+            total_profit: 0,
+            is_admin: isAdmin,
+            created_at: new Date().toISOString()
+          };
+
+          const { error: insertErr } = await supabase
+            .from('users')
+            .insert([newProfile]);
+
+          if (insertErr) {
+            console.warn('Profile insert returned error:', insertErr);
+          }
+
+          // Record bonus transaction
+          const tx: Omit<Transaction, 'id'> = {
+            user_id: uid,
+            type: 'bonus',
+            amount: 30,
+            description: 'Welcome Sign-up Bonus Credit',
+            created_at: new Date().toISOString()
+          };
+          await supabase.from('transactions').insert([tx]);
+
+          return { user: newProfile, error: null };
+        }
+
+        return { user: profile as DbUser, error: null };
+      } catch (err: any) {
+        return { user: null, error: err.message || 'Google Auth Error' };
+      }
+    } else {
+      // Local Database Simulator
+      const users = getStorageItem<DbUser[]>('users', []);
+      let user = users.find(u => u.email.toLowerCase() === email.toLowerCase() || u.id === uid);
+      
+      if (!user) {
+        const isFirstUser = users.length === 0;
+        const isAdmin = isFirstUser || email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com';
+
+        user = {
+          id: uid,
+          full_name: fullName,
+          email: email.toLowerCase(),
+          balance: 30, // Generous $30 sign-up bonus
+          total_profit: 0,
+          is_admin: isAdmin,
+          created_at: new Date().toISOString()
+        };
+
+        users.push(user);
+        setStorageItem('users', users);
+
+        // Create sign up bonus transaction
+        const tx: Transaction = {
+          id: 'tx_bonus_' + Math.random().toString(36).substr(2, 9),
+          user_id: user.id,
+          type: 'bonus',
+          amount: 30,
+          description: 'Welcome Sign-up Bonus Credit',
+          created_at: new Date().toISOString()
+        };
+        const txs = getStorageItem<Transaction[]>('transactions', []);
+        txs.unshift(tx);
+        setStorageItem('transactions', txs);
+      }
+
+      localStorage.setItem('tesla_inv_session', user.id);
+      return { user, error: null };
+    }
+  },
+
   async signOut(): Promise<void> {
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut();

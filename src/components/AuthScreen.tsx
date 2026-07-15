@@ -3,6 +3,7 @@ import { dbService } from '../services/db';
 import { DbUser } from '../types';
 import { Mail, Lock, User, Key, Zap, Shield, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { signInWithGooglePopup } from '../services/firebase';
 
 interface AuthScreenProps {
   onAuthSuccess: (user: DbUser) => void;
@@ -190,6 +191,34 @@ export default function AuthScreen({ onAuthSuccess, showToast, lang, setLang }: 
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const firebaseUser = await signInWithGooglePopup();
+      if (firebaseUser && firebaseUser.email) {
+        const fullNameVal = firebaseUser.displayName || firebaseUser.email.split('@')[0];
+        const { user, error } = await dbService.signInWithGoogle(
+          firebaseUser.uid,
+          fullNameVal,
+          firebaseUser.email
+        );
+        if (error) {
+          showToast(error, 'error');
+        } else if (user) {
+          showToast(`${t[lang].welcomeBack}, ${user.full_name}!`, 'success');
+          onAuthSuccess(user);
+        }
+      } else {
+        showToast(lang === 'en' ? 'Google authentication failed or canceled.' : 'በGoogle መግባት አልተሳካም ወይም ተሰርዟል::', 'error');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t[lang].unexpectedErr, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-between min-h-screen bg-[#020711] text-white px-6 py-10 relative overflow-hidden font-sans">
       {/* Absolute Tesla Royal Gold Laser Glow */}
@@ -336,6 +365,34 @@ export default function AuthScreen({ onAuthSuccess, showToast, lang, setLang }: 
                 </>
               )}
             </button>
+
+            {/* OR SEPARATOR & GOOGLE SIGN IN BUTTON */}
+            {!isForgot && (
+              <>
+                <div className="relative flex py-2 items-center">
+                  <div className="flex-grow border-t border-[#0d2242]"></div>
+                  <span className="flex-shrink mx-4 text-slate-500 text-[10px] uppercase font-mono tracking-widest">or</span>
+                  <div className="flex-grow border-t border-[#0d2242]"></div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleGoogleSignIn}
+                  className="w-full bg-[#040e21] hover:bg-[#071735] text-white border border-[#0d2242] hover:border-[#fbbc05]/35 font-bold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2.5 cursor-pointer transition-all shadow-sm"
+                >
+                  <svg className="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                      <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.57h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.49C21.68,11.75 21.56,11.41 21.35,11.1z" fill="#4285F4" />
+                      <path d="M12,20.6c2.6,0 4.78,-0.86 6.38,-2.3l-3.3,-2.57c-0.91,0.61 -2.08,0.97 -3.08,0.97 -2.37,0 -4.38,-1.6 -5.1,-3.75H3.43v2.66C5.03,18.73 8.31,20.6 12,20.6z" fill="#34A853" />
+                      <path d="M6.9,12.95c-0.18,-0.54 -0.28,-1.11 -0.28,-1.7s0.1,-1.16 0.28,-1.7V6.89H3.43c-0.61,1.21 -0.96,2.58 -0.96,4.01s0.35,2.8 0.96,4.01L6.9,12.95z" fill="#FBBC05" />
+                      <path d="M12,5.51c1.41,0 2.68,0.49 3.68,1.44l2.76,-2.76C16.78,2.71 14.6,1.8 12,1.8c-3.69,0 -6.97,1.87 -8.57,4.89l3.47,2.69C7.62,7.11 9.63,5.51 12,5.51z" fill="#EA4335" />
+                    </g>
+                  </svg>
+                  <span>{isLogin ? (lang === 'en' ? 'Continue with Google' : 'በGoogle ይቀጥሉ') : (lang === 'en' ? 'Sign Up with Google' : 'በGoogle ይመዝገቡ')}</span>
+                </button>
+              </>
+            )}
           </form>
 
           {/* TOGGLE LINKS */}
@@ -377,31 +434,6 @@ export default function AuthScreen({ onAuthSuccess, showToast, lang, setLang }: 
                 </button>
               </p>
             )}
-          </div>
-        </div>
-
-        {/* DEMO ACCOUNTS DRAWER */}
-        <div className="mt-4 bg-[#0b1a30] border border-[#0d2242] rounded-xl p-4 text-center">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => {
-                setEmail('user@gmail.com');
-                setPassword('user123');
-                setIsLogin(true);
-                setIsForgot(false);
-                showToast(t[lang].demoCredentialsFilled, 'info');
-              }}
-              className="bg-[#030a16] border border-[#0d2242] text-slate-300 text-[10px] py-1.5 px-2 rounded-lg hover:border-[#fbbc05] hover:text-[#fbbc05] transition-colors cursor-pointer font-mono shadow-sm"
-            >
-              {t[lang].fillMemberDemo}
-            </button>
-            <button
-              onClick={handleDemoAdminLogin}
-              className="bg-[#030a16] border border-[#fbbc05]/30 text-[#fbbc05] text-[10px] py-1.5 px-2 rounded-lg hover:border-[#fbbc05] hover:bg-[#fbbc05]/10 transition-all cursor-pointer font-mono flex items-center justify-center gap-1 shadow-sm"
-            >
-              <Shield className="w-2.5 h-2.5" />
-              {t[lang].loginAdmin}
-            </button>
           </div>
         </div>
       </div>
