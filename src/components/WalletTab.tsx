@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DbUser, Deposit, Withdrawal, Transaction, AgentAccount } from '../types';
-import { Wallet, Copy, Upload, ArrowUpRight, ArrowDownLeft, FileText, CheckCircle, Smartphone, Clock, XCircle, Users } from 'lucide-react';
+import { Wallet, Copy, Upload, ArrowUpRight, ArrowDownLeft, FileText, CheckCircle, Smartphone, Clock, XCircle, Users, HelpCircle, Landmark } from 'lucide-react';
 import { dbService } from '../services/db';
 
 interface WalletTabProps {
@@ -11,6 +11,8 @@ interface WalletTabProps {
   onDepositSubmit: (amount: number, transactionId: string, screenshotUrl: string, agentAccountId?: string, agentAccountInfo?: string) => Promise<void>;
   onWithdrawSubmit: (amount: number, phone: string) => Promise<void>;
   showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  currency: 'USD' | 'ETB';
+  formatAmount: (usdValue: number, fractionDigits?: number) => string;
 }
 
 export default function WalletTab({
@@ -21,6 +23,8 @@ export default function WalletTab({
   onDepositSubmit,
   onWithdrawSubmit,
   showToast,
+  currency,
+  formatAmount,
 }: WalletTabProps) {
   const [subTab, setSubTab] = useState<'recharge' | 'withdraw' | 'ledger'>('recharge');
   
@@ -29,6 +33,7 @@ export default function WalletTab({
   const [transactionId, setTransactionId] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState('');
   const [recharging, setRecharging] = useState(false);
+  const [agentType, setAgentType] = useState<'telebirr' | 'awash'>('telebirr');
 
   // Active agents state
   const [agents, setAgents] = useState<AgentAccount[]>([]);
@@ -36,12 +41,13 @@ export default function WalletTab({
 
   // Withdrawal form
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [telebirrPhone, setTelebirrPhone] = useState('');
+  const [cbeAccount, setCbeAccount] = useState('');
+  const [cbeHolderName, setCbeHolderName] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
 
   // Fallback Telebirr Details
   const TELEBIRR_MERCHANT_NAME = "TESLA INVESTMENT LIMITED (HQ)";
-  const TELEBIRR_MERCHANT_NUMBER = "809421";
+  const TELEBIRR_MERCHANT_NUMBER = "0926193920";
 
   // Load active agent accounts
   useEffect(() => {
@@ -50,9 +56,6 @@ export default function WalletTab({
         const list = await dbService.getAgentAccounts();
         const activeList = list.filter(a => a.is_active);
         setAgents(activeList);
-        if (activeList.length > 0) {
-          setSelectedAgentId(activeList[0].id);
-        }
       } catch (err) {
         console.error('Error fetching agents:', err);
       }
@@ -60,8 +63,28 @@ export default function WalletTab({
     fetchAgents();
   }, []);
 
+  const filteredAgents = agents.filter(a => {
+    if (agentType === 'awash') {
+      return a.agent_name.toLowerCase().includes('awash') || a.id.includes('awash');
+    } else {
+      return !a.agent_name.toLowerCase().includes('awash') && !a.id.includes('awash');
+    }
+  });
+
+  // Keep selectedAgentId synchronized with filteredAgents
+  useEffect(() => {
+    if (filteredAgents.length > 0) {
+      const isStillValid = filteredAgents.some(f => f.id === selectedAgentId);
+      if (!isStillValid) {
+        setSelectedAgentId(filteredAgents[0].id);
+      }
+    } else {
+      setSelectedAgentId('');
+    }
+  }, [agentType, agents, selectedAgentId]);
+
   // Selected agent object lookup
-  const currentAgent = agents.find(a => a.id === selectedAgentId);
+  const currentAgent = filteredAgents.find(a => a.id === selectedAgentId) || filteredAgents[0];
 
   // Handle Copy Number
   const handleCopyMerchantNumber = () => {
@@ -96,18 +119,18 @@ export default function WalletTab({
       return;
     }
     if (!transactionId.trim()) {
-      showToast('Please enter the Telebirr Transaction ID.', 'error');
+      showToast('Please enter the transaction reference ID.', 'error');
       return;
     }
     if (!screenshotBase64) {
-      showToast('Please upload a screenshot of your Telebirr payment.', 'error');
+      showToast('Please upload a screenshot of your payment receipt.', 'error');
       return;
     }
 
     setRecharging(true);
     try {
-      // Find selected agent details
-      const agent = agents.find(a => a.id === selectedAgentId);
+      // Find selected agent details from filtered ones
+      const agent = filteredAgents.find(a => a.id === selectedAgentId) || filteredAgents[0];
       const agentId = agent?.id;
       const agentInfo = agent ? `${agent.agent_name} (${agent.agent_number})` : `${TELEBIRR_MERCHANT_NAME} (${TELEBIRR_MERCHANT_NUMBER})`;
 
@@ -134,17 +157,23 @@ export default function WalletTab({
       showToast('Insufficient wallet balance to perform this withdrawal.', 'error');
       return;
     }
-    if (!telebirrPhone.trim() || telebirrPhone.trim().length < 9) {
-      showToast('Please enter a valid Telebirr phone number.', 'error');
+    if (!cbeAccount.trim() || cbeAccount.trim().length < 10) {
+      showToast('Please enter a valid CBE Account Number (minimum 10 digits).', 'error');
+      return;
+    }
+    if (!cbeHolderName.trim()) {
+      showToast('Please enter the CBE account holder\'s full name.', 'error');
       return;
     }
 
     setWithdrawing(true);
     try {
-      await onWithdrawSubmit(amountNum, telebirrPhone.trim());
-      showToast('Withdrawal request submitted! Funds are locked in escrow.', 'success');
+      const formattedCbeInfo = `CBE: ${cbeAccount.trim()} (${cbeHolderName.trim()})`;
+      await onWithdrawSubmit(amountNum, formattedCbeInfo);
+      showToast('CBE Withdrawal request submitted! Funds are locked in escrow.', 'success');
       setWithdrawAmount('');
-      setTelebirrPhone('');
+      setCbeAccount('');
+      setCbeHolderName('');
     } catch (err: any) {
       showToast(err.message || 'Withdrawal submission failed.', 'error');
     } finally {
@@ -165,63 +194,63 @@ export default function WalletTab({
     <div className="space-y-6 pb-24 animate-fade-in font-sans">
       {/* Tab Title */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
-          Tesla <span className="text-indigo-600">Wallet</span>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1.5">
+          Tesla <span className="text-amber-600 font-extrabold">Wallet</span>
         </h2>
       </div>
 
       {/* 1. High contrast visual wallet card */}
-      <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 border border-indigo-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden text-white">
-        <div className="absolute top-2 right-2 p-1 text-white bg-indigo-500/40 border border-indigo-400/20 rounded-lg">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-850 border border-slate-800 rounded-3xl p-5 shadow-lg relative overflow-hidden text-white">
+        <div className="absolute top-4 right-4 p-1.5 text-[#fbbc05] bg-[#fbbc05]/10 border border-[#fbbc05]/20 rounded-lg">
           <Wallet className="w-4 h-4" />
         </div>
 
-        <span className="text-[9px] uppercase tracking-widest text-indigo-100 font-mono">Balance</span>
-        <div className="text-3xl font-extrabold tracking-tight text-white font-mono mt-1">
-          ${user.balance.toFixed(2)}
+        <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">Balance</span>
+        <div className="text-3xl font-black tracking-tight text-white font-mono mt-1">
+          {formatAmount(user.balance, 2)}
         </div>
 
         {/* Detailed subdivision of funds */}
-        <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-indigo-500/25 text-xs font-mono">
+        <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-800 text-xs font-mono">
           <div>
-            <span className="text-[8px] text-indigo-200 uppercase block">Inflows</span>
-            <span className="text-emerald-300 font-bold block mt-0.5 flex items-center gap-0.5">
-              <ArrowDownLeft className="w-3.5 h-3.5" />
-              ${totalDepositsApproved.toFixed(2)}
+            <span className="text-[8px] text-slate-400 uppercase block">Inflows</span>
+            <span className="text-emerald-400 font-bold block mt-0.5 flex items-center gap-0.5">
+              <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-400" />
+              {formatAmount(totalDepositsApproved, 2)}
             </span>
           </div>
           <div>
-            <span className="text-[8px] text-indigo-200 uppercase block">Outflows</span>
-            <span className="text-rose-300 font-bold block mt-0.5 flex items-center gap-0.5">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              ${totalWithdrawalsApproved.toFixed(2)}
+            <span className="text-[8px] text-slate-400 uppercase block">Outflows</span>
+            <span className="text-red-400 font-bold block mt-0.5 flex items-center gap-0.5">
+              <ArrowUpRight className="w-3.5 h-3.5 text-red-400" />
+              {formatAmount(totalWithdrawalsApproved, 2)}
             </span>
           </div>
         </div>
       </div>
 
       {/* 2. Tri-sub-tabs selection */}
-      <div className="bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 grid grid-cols-3">
+      <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-3">
         <button
           onClick={() => setSubTab('recharge')}
-          className={`py-2 px-1 rounded-lg font-mono text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-            subTab === 'recharge' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'
+          className={`py-2 px-1 rounded-xl font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+            subTab === 'recharge' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Recharge
         </button>
         <button
           onClick={() => setSubTab('withdraw')}
-          className={`py-2 px-1 rounded-lg font-mono text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-            subTab === 'withdraw' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'
+          className={`py-2 px-1 rounded-xl font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+            subTab === 'withdraw' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Withdraw
         </button>
         <button
           onClick={() => setSubTab('ledger')}
-          className={`py-2 px-1 rounded-lg font-mono text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-            subTab === 'ledger' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'
+          className={`py-2 px-1 rounded-xl font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+            subTab === 'ledger' ? 'bg-[#fbbc05] text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Ledger
@@ -231,45 +260,91 @@ export default function WalletTab({
       {/* 3. RECHARGE VIEW */}
       {subTab === 'recharge' && (
         <form onSubmit={handleDepositSubmit} className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4 shadow-sm">
+          {/* How It Works Guide */}
+          <div className="bg-amber-500/5 border border-amber-500/10 rounded-3xl p-4 space-y-2 text-xs text-slate-600 shadow-sm">
+            <div className="flex items-center gap-1.5 font-bold text-amber-700 uppercase tracking-wider text-[10px]">
+              <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>How Agent Recharge Works</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-1.5 text-slate-600 leading-normal text-[11px] font-sans pl-0.5">
+              <li>Choose your preferred agent network: <strong className="text-amber-700">Telebirr Agent</strong> or <strong className="text-amber-700">Awash Bank Agent</strong>.</li>
+              <li>Visit or contact any physical agent nearby or transfer money to the authorized agent's number listed below.</li>
+              <li>Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).</li>
+              <li>Enter your unique transaction reference ID (TxID) and upload a screenshot of your successful transaction receipt.</li>
+              <li>Submit your deposit ticket. Our system administrators will verify the payment and credit your balance within 10-15 minutes!</li>
+            </ol>
+          </div>
+
+          <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-4 shadow-sm">
+            {/* Agent Type Segmented Picker */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
+                Select Agent Network
+              </label>
+              <div className="bg-slate-50 p-1 rounded-xl border border-slate-200 grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAgentType('telebirr')}
+                  className={`py-2 px-1 rounded-lg font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+                    agentType === 'telebirr' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Telebirr Agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAgentType('awash')}
+                  className={`py-2 px-1 rounded-lg font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+                    agentType === 'awash' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Awash Agent
+                </button>
+              </div>
+            </div>
+
             {/* Agent Selector */}
-            {agents.length > 0 ? (
+            {filteredAgents.length > 0 ? (
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono block">
-                  Authorized Agent
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
+                  Authorized {agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'} Agent
                 </label>
                 <select
                   value={selectedAgentId}
                   onChange={(e) => setSelectedAgentId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 p-3 rounded-xl outline-none focus:border-indigo-500 font-sans"
+                  className="w-full bg-white border border-slate-200 text-xs text-slate-800 p-3 rounded-xl outline-none focus:border-[#fbbc05] font-sans shadow-sm cursor-pointer"
                 >
-                  {agents.map((ag) => (
-                    <option key={ag.id} value={ag.id}>
+                  {filteredAgents.map((ag) => (
+                    <option key={ag.id} value={ag.id} className="bg-white text-slate-800">
                       {ag.agent_name} ({ag.agent_number})
                     </option>
                   ))}
                 </select>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] text-slate-500 text-center">
+                No active {agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'} agents configured yet.
+              </div>
+            )}
             
             {/* Payment Details Box */}
-            <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-2.5 font-mono text-[11px]">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-2.5 text-[11px]">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 uppercase">Agent Name:</span>
-                <span className="text-slate-900 font-bold">
-                  {currentAgent ? currentAgent.agent_name : TELEBIRR_MERCHANT_NAME}
+                <span className="text-slate-500 uppercase font-bold text-[10px]">Agent Name:</span>
+                <span className="text-slate-800 font-extrabold">
+                  {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Tesla Awash Agent')}
                 </span>
               </div>
               <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
-                <span className="text-slate-500 uppercase">Agent Account:</span>
-                <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded">
-                  <span className="text-emerald-600 font-bold">
-                    {currentAgent ? currentAgent.agent_number : TELEBIRR_MERCHANT_NUMBER}
+                <span className="text-slate-500 uppercase font-bold text-[10px]">Agent Account / Number:</span>
+                <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
+                  <span className="text-emerald-700 font-mono font-extrabold">
+                    {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '0132049581900')}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyMerchantNumber}
-                    className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+                    className="p-1 hover:bg-[#fbbc05]/10 rounded text-slate-400 hover:text-amber-600 transition-colors cursor-pointer"
                   >
                     <Copy className="w-3 h-3" />
                   </button>
@@ -279,35 +354,40 @@ export default function WalletTab({
 
             {/* Amount Field */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">Amount (USD)</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Amount (USD)</label>
               <input
                 type="number"
                 required
                 placeholder="Enter amount (e.g. 50)"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
               />
+              {depositAmount && !isNaN(parseFloat(depositAmount)) && (
+                <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
+                  ≈ {(parseFloat(depositAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">(Rate: 1 USD = 120 ETB)</span>
+                </div>
+              )}
             </div>
 
             {/* TxID Field */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">Transaction ID</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Transaction ID (TxID)</label>
               <input
                 type="text"
                 required
                 placeholder="Enter Transaction ID"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
               />
             </div>
 
             {/* Image Selector */}
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">Receipt Screenshot</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Receipt Screenshot</label>
               
-              <div className="border border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col items-center justify-center relative hover:border-indigo-500/40 transition-colors">
+              <div className="border border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 flex flex-col items-center justify-center relative hover:border-[#fbbc05]/60 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -323,13 +403,13 @@ export default function WalletTab({
                       referrerPolicy="no-referrer"
                       className="h-28 mx-auto object-cover rounded-lg border border-slate-200"
                     />
-                    <p className="text-[10px] text-emerald-600 font-mono">Ready to upload</p>
+                    <p className="text-[10px] text-emerald-600 font-bold">Ready to upload</p>
                   </div>
                 ) : (
                   <>
                     <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                    <span className="text-xs font-bold text-slate-500">Upload Transaction Receipt</span>
-                    <span className="text-[9px] text-slate-400 font-mono mt-1">JPEG/PNG, Max 2MB</span>
+                    <span className="text-xs font-bold text-slate-600">Upload Transaction Receipt</span>
+                    <span className="text-[9px] text-slate-400 mt-1">JPEG/PNG, Max 2MB</span>
                   </>
                 )}
               </div>
@@ -339,10 +419,10 @@ export default function WalletTab({
           <button
             type="submit"
             disabled={recharging}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white font-mono font-bold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shadow-indigo-600/15 uppercase"
+            className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] disabled:opacity-50 text-slate-950 font-bold text-sm py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md uppercase"
           >
             {recharging ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
             ) : (
               'Submit Deposit Ticket'
             )}
@@ -353,16 +433,19 @@ export default function WalletTab({
       {/* 4. WITHDRAW VIEW */}
       {subTab === 'withdraw' && (
         <form onSubmit={handleWithdrawSubmit} className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4 shadow-sm">
+          <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-4 shadow-sm">
             {/* Available to withdraw banner */}
-            <div className="flex justify-between items-center p-3 bg-slate-50 border border-slate-200/60 rounded-xl font-mono text-xs text-slate-600">
-              <span className="text-slate-500">LIQUID CAPITAL:</span>
-              <span className="text-emerald-600 font-bold">${user.balance.toFixed(2)}</span>
+            <div className="flex justify-between items-center p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl text-xs text-slate-600">
+              <span className="text-slate-500 flex items-center gap-1.5 font-bold">
+                <Landmark className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                CBE LIQUID CAPITAL:
+              </span>
+              <span className="text-emerald-700 font-black font-mono">{formatAmount(user.balance, 2)}</span>
             </div>
 
             {/* Withdrawal Amount */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">Amount (USD)</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">Amount (USD)</label>
               <input
                 type="number"
                 required
@@ -370,31 +453,57 @@ export default function WalletTab({
                 placeholder="Enter amount to withdraw"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+              />
+              {withdrawAmount && !isNaN(parseFloat(withdrawAmount)) && (
+                <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
+                  ≈ {(parseFloat(withdrawAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">(Rate: 1 USD = 120 ETB)</span>
+                </div>
+              )}
+            </div>
+
+            {/* CBE Account Number */}
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
+                CBE Bank Account Number
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. 1000123456789"
+                value={cbeAccount}
+                onChange={(e) => setCbeAccount(e.target.value.replace(/\D/g, ''))}
+                className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
               />
             </div>
 
-            {/* Telebirr phone */}
+            {/* CBE Account Holder Name */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">Phone Number</label>
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
+                Account Holder Full Name
+              </label>
               <input
-                type="tel"
+                type="text"
                 required
-                placeholder="e.g. 0912345678"
-                value={telebirrPhone}
-                onChange={(e) => setTelebirrPhone(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                placeholder="Name registered on bank account"
+                value={cbeHolderName}
+                onChange={(e) => setCbeHolderName(e.target.value)}
+                className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-sans"
               />
+            </div>
+
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-800 rounded-2xl text-[10.5px] leading-normal font-sans">
+              ⚠️ <span className="font-bold">Important Notice:</span> Double check your CBE account details. Withdrawals to incorrect account numbers cannot be reversed once approved by the administrators.
             </div>
           </div>
 
           <button
             type="submit"
             disabled={withdrawing || user.balance === 0}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white font-mono font-bold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shadow-indigo-600/15 uppercase"
+            className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] disabled:opacity-50 text-slate-950 font-bold text-sm py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md uppercase"
           >
             {withdrawing ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
             ) : (
               'Submit Withdrawal Request'
             )}
@@ -406,7 +515,7 @@ export default function WalletTab({
       {subTab === 'ledger' && (
         <div className="space-y-4">
           {transactions.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+            <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm">
               <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
               <h4 className="text-xs font-bold text-slate-400 uppercase">No history</h4>
             </div>
@@ -418,13 +527,13 @@ export default function WalletTab({
                 return (
                   <div
                     key={tx.id}
-                    className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden"
+                    className="bg-white border border-slate-100 rounded-2xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden"
                   >
                     {/* Tiny visual type bar */}
                     <div
-                      className={`absolute left-0 top-0 bottom-0 w-[2.5px] ${
+                      className={`absolute left-0 top-0 bottom-0 w-[3px] ${
                         tx.type === 'deposit'
-                          ? 'bg-indigo-500'
+                          ? 'bg-[#fbbc05]'
                           : tx.type === 'withdrawal'
                           ? 'bg-rose-500'
                           : tx.type === 'profit'
@@ -436,7 +545,7 @@ export default function WalletTab({
                     />
 
                     <div className="pl-2.5">
-                      <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block">
+                      <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider block">
                         {tx.type} • {new Date(tx.created_at).toLocaleDateString()}
                       </span>
                       <h4 className="text-xs font-bold text-slate-800 mt-0.5 tracking-tight">{tx.description}</h4>
@@ -448,9 +557,9 @@ export default function WalletTab({
                           isPositive ? 'text-emerald-600' : 'text-slate-500'
                         }`}
                       >
-                        {isPositive ? '+' : ''}${tx.amount.toFixed(2)}
+                        {isPositive ? '+' : ''}{formatAmount(tx.amount, 2)}
                       </span>
-                      <span className="text-[8px] text-slate-400 font-mono block uppercase">USD</span>
+                      <span className="text-[8px] text-slate-400 font-mono block uppercase">{currency}</span>
                     </div>
                   </div>
                 );
@@ -459,20 +568,20 @@ export default function WalletTab({
           )}
 
           {/* Special Verification Log showing user's requests */}
-          <div className="border-t border-slate-100 pt-6 space-y-4">
-            <h4 className="text-xs font-mono uppercase text-slate-400 px-1">Pending Requests</h4>
+          <div className="border-t border-slate-200 pt-6 space-y-4">
+            <h4 className="text-xs uppercase text-slate-500 px-1 font-extrabold">Pending Requests</h4>
             
             {/* Deposits Tickets list */}
             {deposits.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[9px] font-mono text-slate-400 uppercase block px-1">Deposits</span>
+                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">Deposits</span>
                 {deposits.map((dep) => (
-                  <div key={dep.id} className="bg-white border border-slate-200 p-3 rounded-xl flex justify-between items-center font-mono text-[10px] shadow-sm">
+                  <div key={dep.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
                     <div>
-                      <span className="text-slate-900 font-bold block">Amt: ${dep.amount}</span>
-                      <span className="text-slate-500 block text-[9px] mt-0.5">TxID: {dep.transaction_id}</span>
+                      <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(dep.amount, 2)}</span>
+                      <span className="text-slate-400 block text-[9px] mt-0.5 font-mono">TxID: {dep.transaction_id}</span>
                       {dep.agent_account_info && (
-                        <span className="text-slate-400 block text-[8px] mt-0.5 font-sans">
+                        <span className="text-slate-500 block text-[8px] mt-0.5 font-sans">
                           Agent: {dep.agent_account_info}
                         </span>
                       )}
@@ -480,10 +589,10 @@ export default function WalletTab({
                     
                     <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
                       dep.status === 'pending'
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
                         : dep.status === 'approved'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
                     }`}>
                       {dep.status}
                     </span>
@@ -495,20 +604,22 @@ export default function WalletTab({
             {/* Withdrawals Tickets list */}
             {withdrawals.length > 0 && (
               <div className="space-y-2 mt-4">
-                <span className="text-[9px] font-mono text-slate-400 uppercase block px-1">Withdrawals</span>
+                <span className="text-[9px] text-slate-400 uppercase block px-1 font-bold">Withdrawals</span>
                 {withdrawals.map((wd) => (
-                  <div key={wd.id} className="bg-white border border-slate-200 p-3 rounded-xl flex justify-between items-center font-mono text-[10px] shadow-sm">
+                  <div key={wd.id} className="bg-white border border-slate-100 p-3.5 rounded-2xl flex justify-between items-center text-[10px] shadow-sm">
                     <div>
-                      <span className="text-slate-900 font-bold block">Amt: ${wd.amount}</span>
-                      <span className="text-slate-500 block text-[9px] mt-0.5">Tel: {wd.telebirr_number}</span>
+                      <span className="text-slate-800 font-extrabold block">Amt: {formatAmount(wd.amount, 2)}</span>
+                      <span className="text-slate-400 block text-[9px] mt-0.5">
+                        {wd.telebirr_number.startsWith('CBE') ? wd.telebirr_number : `Tel: ${wd.telebirr_number}`}
+                      </span>
                     </div>
                     
                     <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
                       wd.status === 'pending'
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
                         : wd.status === 'approved'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
                     }`}>
                       {wd.status}
                     </span>

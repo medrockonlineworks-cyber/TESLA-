@@ -24,35 +24,35 @@ console.log(
 
 const DEFAULT_PLANS: InvestmentPlan[] = [
   {
-    id: 'plan_model3',
-    name: 'Tesla Model 3 Starter',
-    amount: 50,
-    return_amount: 65,
+    id: 'plan_starter',
+    name: 'Starter plan',
+    amount: 85, // 85 * 120 = 10,200 ETB
+    return_amount: 1500, // 1500 * 120 = 180,000 ETB
     duration_hours: 24,
     status: 'active'
   },
   {
-    id: 'plan_modely',
-    name: 'Tesla Model Y Premium',
-    amount: 200,
-    return_amount: 280,
+    id: 'plan_growth',
+    name: 'Growth plan',
+    amount: 166.666667, // 166.67 * 120 ≈ 20,000 ETB
+    return_amount: 3000, // 3000 * 120 = 360,000 ETB
     duration_hours: 24,
     status: 'active'
   },
   {
-    id: 'plan_models',
-    name: 'Tesla Model S Elite',
-    amount: 500,
-    return_amount: 750,
-    duration_hours: 24,
+    id: 'plan_premium',
+    name: 'Premium plan',
+    amount: 250, // 250 * 120 = 30,000 ETB
+    return_amount: 4583.333333, // 4583.33 * 120 ≈ 550,000 ETB
+    duration_hours: 48,
     status: 'active'
   },
   {
-    id: 'plan_cybertruck',
-    name: 'Tesla CyberTruck Sovereign',
-    amount: 1500,
-    return_amount: 2400,
-    duration_hours: 24,
+    id: 'plan_elite',
+    name: 'Elite plan',
+    amount: 333.333333, // 333.33 * 120 ≈ 40,000 ETB
+    return_amount: 6000, // 6000 * 120 = 720,000 ETB
+    duration_hours: 48,
     status: 'active'
   }
 ];
@@ -75,17 +75,24 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
 const DEFAULT_AGENTS: AgentAccount[] = [
   {
     id: 'agent_1',
-    agent_name: 'Tesla Authorized Agent Alpha',
-    agent_number: '809421',
+    agent_name: 'Telebirr Authorized Agent',
+    agent_number: '0926193920',
     is_active: true,
     created_at: new Date(Date.now() - 3600000 * 48).toISOString()
   },
   {
-    id: 'agent_2',
-    agent_name: 'Tesla Authorized Agent Beta',
-    agent_number: '711520',
+    id: 'agent_awash1',
+    agent_name: 'Awash Bank Agent (Kassa Abebe)',
+    agent_number: '0132049581900',
     is_active: true,
-    created_at: new Date(Date.now() - 3600000 * 24).toISOString()
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString()
+  },
+  {
+    id: 'agent_awash2',
+    agent_name: 'Awash Bank Agent (Abebech B.)',
+    agent_number: '0149023485700',
+    is_active: true,
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString()
   }
 ];
 
@@ -106,13 +113,28 @@ function setStorageItem<T>(key: string, value: T): void {
 // Initializing simulator tables
 const initLocalDb = () => {
   getStorageItem<DbUser[]>('users', []);
-  getStorageItem<InvestmentPlan[]>('plans', DEFAULT_PLANS);
+  
+  // Force reset plans to the new high-yield custom plans from the screenshot
+  const storedPlans = localStorage.getItem('tesla_inv_plans');
+  if (!storedPlans || storedPlans.includes('plan_model3') || storedPlans.includes('Tesla Model 3')) {
+    localStorage.setItem('tesla_inv_plans', JSON.stringify(DEFAULT_PLANS));
+  } else {
+    getStorageItem<InvestmentPlan[]>('plans', DEFAULT_PLANS);
+  }
+
   getStorageItem<Investment[]>('investments', []);
   getStorageItem<Deposit[]>('deposits', []);
   getStorageItem<Withdrawal[]>('withdrawals', []);
   getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
-  getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
+
+  // Force reset agents to include the new Telebirr agent immediately
+  const storedAgents = localStorage.getItem('tesla_inv_agent_accounts');
+  if (!storedAgents || !storedAgents.includes('0926193920')) {
+    localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
+  } else {
+    getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
+  }
 };
 
 initLocalDb();
@@ -180,7 +202,7 @@ export const dbService = {
         id: 'u_' + Math.random().toString(36).substr(2, 9),
         full_name: fullName,
         email: email.toLowerCase(),
-        balance: 10, // Generous $10 sign-up bonus to allow immediate plans preview!
+        balance: 30, // Generous $30 sign-up bonus to allow immediate plans preview!
         total_profit: 0,
         is_admin: isAdmin,
         created_at: new Date().toISOString()
@@ -195,7 +217,7 @@ export const dbService = {
         id: 'tx_bonus_' + Math.random().toString(36).substr(2, 9),
         user_id: newUser.id,
         type: 'bonus',
-        amount: 10,
+        amount: 30,
         description: 'Welcome Sign-up Bonus Credit',
         created_at: new Date().toISOString()
       };
@@ -700,28 +722,69 @@ export const dbService = {
         .single();
       if (error) throw error;
 
-      // 3. If approved, add balance to user & write a transaction
+      // 3. If approved, handle standard or direct investment
       if (status === 'approved') {
-        const { data: user, error: userErr } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', dep.user_id)
-          .single();
-        if (userErr) throw userErr;
+        if (dep.agent_account_info && dep.agent_account_info.startsWith('Direct Investment: ')) {
+          const planId = dep.agent_account_info.replace('Direct Investment: ', '');
+          
+          // Fetch plan details from Supabase
+          const { data: plan } = await supabase.from('plans').select('*').eq('id', planId).single();
+          if (plan) {
+            const startTime = new Date().toISOString();
+            const endTime = new Date(Date.now() + 3600000 * plan.duration_hours).toISOString();
+            
+            const newInvestment = {
+              id: 'inv_' + Math.random().toString(36).substr(2, 9),
+              user_id: dep.user_id,
+              plan_id: planId,
+              amount: dep.amount,
+              expected_return: plan.return_amount,
+              start_time: startTime,
+              end_time: endTime,
+              status: 'active'
+            };
+            await supabase.from('investments').insert([newInvestment]);
 
-        await supabase
-          .from('users')
-          .update({ balance: user.balance + dep.amount })
-          .eq('id', dep.user_id);
+            // Add transactions
+            const tx1 = {
+              user_id: dep.user_id,
+              type: 'deposit',
+              amount: dep.amount,
+              description: `Direct Payment Approved for ${plan.name} (Order: ${dep.transaction_id})`,
+              created_at: new Date().toISOString()
+            };
+            const tx2 = {
+              user_id: dep.user_id,
+              type: 'investment',
+              amount: -dep.amount,
+              description: `Staked directly in ${plan.name} (Yields: $${plan.return_amount})`,
+              created_at: startTime
+            };
+            await supabase.from('transactions').insert([tx1, tx2]);
+          }
+        } else {
+          // Standard deposit
+          const { data: user, error: userErr } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', dep.user_id)
+            .single();
+          if (userErr) throw userErr;
 
-        const tx: Omit<Transaction, 'id'> = {
-          user_id: dep.user_id,
-          type: 'deposit',
-          amount: dep.amount,
-          description: `Telebirr Deposit Approved (TxID: ${dep.transaction_id})`,
-          created_at: new Date().toISOString()
-        };
-        await supabase.from('transactions').insert([tx]);
+          await supabase
+            .from('users')
+            .update({ balance: user.balance + dep.amount })
+            .eq('id', dep.user_id);
+
+          const tx: Omit<Transaction, 'id'> = {
+            user_id: dep.user_id,
+            type: 'deposit',
+            amount: dep.amount,
+            description: `Telebirr Deposit Approved (TxID: ${dep.transaction_id})`,
+            created_at: new Date().toISOString()
+          };
+          await supabase.from('transactions').insert([tx]);
+        }
       }
 
       return data as Deposit;
@@ -743,22 +806,67 @@ export const dbService = {
       setStorageItem('deposits', deposits);
 
       if (status === 'approved') {
-        const uIndex = users.findIndex(u => u.id === dep.user_id);
-        if (uIndex !== -1) {
-          users[uIndex].balance += dep.amount;
-          setStorageItem('users', users);
-        }
+        if (dep.agent_account_info && dep.agent_account_info.startsWith('Direct Investment: ')) {
+          const planId = dep.agent_account_info.replace('Direct Investment: ', '');
+          const plans = getStorageItem<InvestmentPlan[]>('plans', DEFAULT_PLANS);
+          const plan = plans.find(p => p.id === planId);
+          
+          if (plan) {
+            const startTime = new Date().toISOString();
+            const endTime = new Date(Date.now() + 3600000 * plan.duration_hours).toISOString();
+            
+            const newInvestment: Investment = {
+              id: 'inv_' + Math.random().toString(36).substr(2, 9),
+              user_id: dep.user_id,
+              plan_id: planId,
+              amount: dep.amount,
+              expected_return: plan.return_amount,
+              start_time: startTime,
+              end_time: endTime,
+              status: 'active'
+            };
+            const investments = getStorageItem<Investment[]>('investments', []);
+            investments.push(newInvestment);
+            setStorageItem('investments', investments);
 
-        const tx: Transaction = {
-          id: 'tx_dep_' + Math.random().toString(36).substr(2, 9),
-          user_id: dep.user_id,
-          type: 'deposit',
-          amount: dep.amount,
-          description: `Telebirr Deposit Approved (TxID: ${dep.transaction_id})`,
-          created_at: new Date().toISOString()
-        };
-        txs.unshift(tx);
-        setStorageItem('transactions', txs);
+            const tx1: Transaction = {
+              id: 'tx_dep_' + Math.random().toString(36).substr(2, 9),
+              user_id: dep.user_id,
+              type: 'deposit',
+              amount: dep.amount,
+              description: `Direct Payment Approved for ${plan.name} (Order: ${dep.transaction_id})`,
+              created_at: new Date().toISOString()
+            };
+            const tx2: Transaction = {
+              id: 'tx_inv_' + Math.random().toString(36).substr(2, 9),
+              user_id: dep.user_id,
+              type: 'investment',
+              amount: -dep.amount,
+              description: `Staked directly in ${plan.name} (Yields: $${plan.return_amount})`,
+              created_at: startTime
+            };
+            txs.unshift(tx1, tx2);
+            setStorageItem('transactions', txs);
+          }
+        } else {
+          // Standard deposit
+          const uIndex = users.findIndex(u => u.id === dep.user_id);
+          if (uIndex !== -1) {
+            users[uIndex].balance += dep.amount;
+            setStorageItem('users', users);
+          }
+
+          const tx: Transaction = {
+            id: 'tx_dep_' + Math.random().toString(36).substr(2, 9),
+            user_id: dep.user_id,
+            type: 'deposit',
+            amount: dep.amount,
+            description: `Telebirr Deposit Approved (TxID: ${dep.transaction_id})`,
+            created_at: new Date().toISOString()
+          };
+          txs.unshift(tx);
+          setStorageItem('transactions', txs);
+        }
       }
 
       return deposits[depIndex];

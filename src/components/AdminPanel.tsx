@@ -237,12 +237,12 @@ export default function AdminPanel({
       {/* Header section */}
       <div className="max-w-md mx-auto flex items-center justify-between border-b border-zinc-900 pb-4 mb-6">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-indigo-500" />
+          <Shield className="w-5 h-5 text-[#fbbc05]" />
           <h1 className="text-sm font-bold font-mono tracking-wider text-zinc-100 uppercase">Admin Console</h1>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 bg-zinc-950 border border-zinc-800 hover:border-indigo-500 rounded-full text-zinc-400 hover:text-zinc-200 cursor-pointer"
+          className="p-1.5 bg-zinc-950 border border-zinc-800 hover:border-[#fbbc05] rounded-full text-zinc-400 hover:text-zinc-200 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -274,7 +274,7 @@ export default function AdminPanel({
                 }}
                 className={`py-1.5 px-3 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0 cursor-pointer border ${
                   isSelected
-                    ? 'bg-red-600 border-red-600 text-white shadow-md shadow-red-600/10'
+                    ? 'bg-[#fbbc05] border-[#fbbc05] text-slate-950 shadow-md shadow-[#fbbc05]/10 font-extrabold'
                     : 'bg-zinc-950 border-zinc-900 text-zinc-400 hover:text-white'
                 }`}
               >
@@ -396,7 +396,7 @@ export default function AdminPanel({
                       </div>
 
                       <div className="bg-black/60 border border-zinc-900 p-2.5 rounded-xl text-[10px] font-mono">
-                        <span className="text-zinc-500 uppercase block">Telebirr Payout Destination:</span>
+                        <span className="text-zinc-500 uppercase block">CBE Payout Destination Details:</span>
                         <span className="text-green-500 font-bold block mt-0.5 text-xs">{wd.telebirr_number}</span>
                       </div>
 
@@ -694,7 +694,7 @@ export default function AdminPanel({
         {activeSubTab === 'agents' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Telebirr Agent Accounts</h3>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Authorized Agent Accounts</h3>
               <button
                 onClick={() => setIsCreatingAgent(!isCreatingAgent)}
                 className="py-1 px-2 bg-red-600 hover:bg-red-700 text-white rounded font-mono text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
@@ -706,12 +706,15 @@ export default function AdminPanel({
 
             {isCreatingAgent && (
               <form onSubmit={handleCreateAgent} className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+                <div className="bg-red-950/10 border border-red-950/30 p-2.5 rounded-lg text-[9px] text-zinc-400 font-sans leading-normal">
+                  💡 <span className="font-bold text-white uppercase">Pro Tip:</span> Include the word <strong className="text-white">"Awash"</strong> in the Agent Name to register them as an Awash Bank Agent. Otherwise, they will be classified as a Telebirr Agent.
+                </div>
                 <div className="space-y-1">
                   <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">Agent/Beneficiary Name</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Telebirr Agent - Abel Kebede"
+                    placeholder="e.g. Awash Agent - Abel Kebede"
                     value={newAgentName}
                     onChange={(e) => setNewAgentName(e.target.value)}
                     className="w-full bg-black border border-zinc-800 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none text-xs text-white px-3 py-2 rounded-lg transition-all font-sans"

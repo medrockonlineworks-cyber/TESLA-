@@ -8,7 +8,7 @@ import InvestTab from './components/InvestTab';
 import WalletTab from './components/WalletTab';
 import ProfileTab from './components/ProfileTab';
 import AdminPanel from './components/AdminPanel';
-import { ShieldCheck, Sparkles, Smartphone, CheckCircle, AlertTriangle, Info, Moon } from 'lucide-react';
+import { ShieldCheck, Sparkles, Smartphone, CheckCircle, AlertTriangle, Info, Moon, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Toast {
@@ -22,6 +22,25 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'invest' | 'wallet' | 'profile'>('home');
   const [showAdmin, setShowAdmin] = useState(false);
   const [appReady, setAppReady] = useState(false);
+
+  // Display Currency State & Conversion logic (1 USD = 120 ETB)
+  const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
+  const [lang, setLang] = useState<'en' | 'am'>('en');
+  const EXCHANGE_RATE = 120;
+
+  const formatAmount = useCallback((usdValue: number, fractionDigits = 2) => {
+    if (currency === 'ETB') {
+      const etbValue = usdValue * EXCHANGE_RATE;
+      return `${etbValue.toLocaleString(undefined, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits
+      })} ETB`;
+    }
+    return `$${usdValue.toLocaleString(undefined, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits
+    })}`;
+  }, [currency]);
 
   // Core Data Stores
   const [plans, setPlans] = useState<InvestmentPlan[]>([]);
@@ -186,12 +205,30 @@ export default function App() {
     }
   };
 
+  // Download APK handler
+  const handleDownloadApp = () => {
+    showToast("Downloading official Tesla Investment App package...", "success");
+    
+    const blob = new Blob(
+      ["Tesla Investment Limited - Official Android App (v1.0.4). Install this app on your Android device to start staking energy pools and manage your CBE/Telebirr portfolio with absolute freedom!"],
+      { type: "application/vnd.android.package-archive" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Tesla_Investment_Limited_v1.0.4.apk";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Show Loading Spinner on boot
   if (!appReady) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-900 font-sans">
-        <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mb-4" />
-        <h3 className="text-sm font-mono uppercase tracking-widest text-slate-400">Initializing Tesla Secure Core...</h3>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white text-slate-900 font-sans">
+        <div className="w-12 h-12 border-4 border-amber-300/30 border-t-[#fbbc05] rounded-full animate-spin mb-4" />
+        <h3 className="text-sm font-mono uppercase tracking-widest text-slate-500">Initializing Tesla Secure Core...</h3>
       </div>
     );
   }
@@ -201,7 +238,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         {/* Simulate phone wrapper on desktop screen, full-bleed on mobile */}
-        <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-slate-50 relative md:my-6">
+        <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-white text-slate-900 relative md:my-6">
           <AuthScreen onAuthSuccess={handleAuthSuccess} showToast={showToast} />
           
           {/* Floating Toast notification popup inside the phone view */}
@@ -215,15 +252,15 @@ export default function App() {
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   className={`p-3.5 rounded-xl border shadow-lg flex items-start gap-2.5 backdrop-blur-md pointer-events-auto ${
                     toast.type === 'success'
-                      ? 'bg-white/95 border-green-200 text-green-800'
+                      ? 'bg-white/95 border-emerald-200 text-emerald-800 shadow-emerald-100'
                       : toast.type === 'error'
-                      ? 'bg-white/95 border-red-200 text-red-800'
-                      : 'bg-white/95 border-indigo-200 text-indigo-800'
+                      ? 'bg-white/95 border-red-200 text-red-800 shadow-red-100'
+                      : 'bg-white/95 border-amber-200 text-amber-800 shadow-amber-100'
                   }`}
                 >
-                  {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />}
-                  {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />}
-                  {toast.type === 'info' && <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />}
+                  {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+                  {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />}
+                  {toast.type === 'info' && <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />}
                   <p className="text-[11px] font-sans font-medium leading-relaxed">{toast.message}</p>
                 </motion.div>
               ))}
@@ -238,17 +275,71 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center">
       {/* Simulate Phone enclosure frame on Desktop */}
-      <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-slate-50 relative md:my-6 pb-20">
+      <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-white relative md:my-6 pb-20 text-slate-900">
         
         {/* Top status rail bar mockup */}
-        <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping shadow-[0_0_6px_#4f46e5]" />
-            <span className="text-[10px] font-mono tracking-widest text-slate-800 uppercase font-bold">Tesla Inv Co.</span>
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-1.5 text-slate-900">
+            <span className="w-2 h-2 rounded-full bg-[#fbbc05] animate-ping shadow-[0_0_6px_#fbbc05]" />
+            <span className="text-[10px] font-mono tracking-widest uppercase font-bold">Tesla Inv Co.</span>
           </div>
-          <div className="flex items-center gap-2 text-[9px] text-slate-500 font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>SECURED ENGINE</span>
+
+          <div className="flex items-center gap-3">
+            {/* Interactive Currency Selector Pill */}
+            <div className="bg-slate-100 p-0.5 rounded-lg border border-slate-200 flex items-center gap-0.5">
+              <button
+                onClick={() => {
+                  setCurrency('USD');
+                  showToast('Display currency switched to USD ($)', 'info');
+                }}
+                className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-all cursor-pointer ${
+                  currency === 'USD'
+                    ? 'bg-[#fbbc05] text-slate-950 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                USD
+              </button>
+              <button
+                onClick={() => {
+                  setCurrency('ETB');
+                  showToast('Display currency switched to ETB (Ethiopian Birr)', 'info');
+                }}
+                className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-all cursor-pointer ${
+                  currency === 'ETB'
+                    ? 'bg-[#fbbc05] text-slate-950 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                ETB
+              </button>
+            </div>
+
+            {/* Interactive Language Selector Dropdown */}
+            <div className="relative">
+              <select
+                value={lang}
+                onChange={(e) => {
+                  const val = e.target.value as 'en' | 'am';
+                  setLang(val);
+                  showToast(val === 'en' ? 'Language switched to English' : 'ቋንቋ ወደ አማርኛ ተቀይሯል', 'info');
+                }}
+                className="bg-slate-100 border border-slate-200 text-slate-800 rounded-lg py-0.5 pl-2.5 pr-6 text-[8px] font-bold uppercase cursor-pointer outline-none hover:bg-slate-200 transition-colors appearance-none font-mono"
+              >
+                <option value="en">EN</option>
+                <option value="am">አማ</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
+                <svg className="fill-current h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 text-[9px] text-slate-500 font-mono">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>SECURED</span>
+            </div>
           </div>
         </div>
 
@@ -262,8 +353,12 @@ export default function App() {
                 announcements={announcements}
                 investments={investments}
                 onInvest={handleInvestInPlan}
+                onDepositSubmit={handleDepositSubmit}
                 showToast={showToast}
                 setActiveTab={setActiveTab}
+                currency={currency}
+                formatAmount={formatAmount}
+                lang={lang}
               />
             )}
             {activeTab === 'invest' && (
@@ -271,6 +366,8 @@ export default function App() {
                 investments={investments}
                 onRefresh={handleDataRefresh}
                 showToast={showToast}
+                currency={currency}
+                formatAmount={formatAmount}
               />
             )}
             {activeTab === 'wallet' && (
@@ -282,6 +379,8 @@ export default function App() {
                 onDepositSubmit={handleDepositSubmit}
                 onWithdrawSubmit={handleWithdrawSubmit}
                 showToast={showToast}
+                currency={currency}
+                formatAmount={formatAmount}
               />
             )}
             {activeTab === 'profile' && (
@@ -290,6 +389,8 @@ export default function App() {
                 investments={investments}
                 onLogout={handleLogout}
                 onOpenAdmin={() => setShowAdmin(true)}
+                currency={currency}
+                formatAmount={formatAmount}
               />
             )}
           </AnimatePresence>
@@ -306,19 +407,50 @@ export default function App() {
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 className={`p-3.5 rounded-xl border shadow-lg flex items-start gap-2.5 backdrop-blur-md pointer-events-auto ${
                   toast.type === 'success'
-                    ? 'bg-white/95 border-green-200 text-green-800'
+                    ? 'bg-white/95 border-emerald-200 text-emerald-800 shadow-emerald-100'
                     : toast.type === 'error'
-                    ? 'bg-white/95 border-red-200 text-red-800'
-                    : 'bg-white/95 border-indigo-200 text-indigo-800'
+                    ? 'bg-white/95 border-red-200 text-red-800 shadow-red-100'
+                    : 'bg-white/95 border-amber-200 text-amber-800 shadow-amber-100'
                 }`}
               >
-                {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />}
-                {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />}
-                {toast.type === 'info' && <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />}
+                {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+                {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />}
+                {toast.type === 'info' && <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />}
                 <p className="text-[11px] font-sans font-medium leading-relaxed">{toast.message}</p>
               </motion.div>
             ))}
           </AnimatePresence>
+        </div>
+
+        {/* Floating Brand/Community Outreach Actions (Telegram + App Download) */}
+        <div className="absolute bottom-20 left-4 right-4 z-40 flex justify-between items-center pointer-events-none">
+          {/* Telegram floating launcher button */}
+          <motion.a
+            href="https://t.me/tesla_investment_et"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => showToast("Opening Tesla Investment Official Telegram channel...", "info")}
+            className="pointer-events-auto w-11 h-11 rounded-full bg-[#229ED9] hover:bg-[#1d8fc4] flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/15 transition-all cursor-pointer"
+            id="telegram-link-launcher"
+            title="Join Telegram"
+          >
+            <Send className="w-4.5 h-4.5 -translate-x-[1px] translate-y-[0.5px]" />
+          </motion.a>
+
+          {/* Tesla App Download floating button */}
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleDownloadApp}
+            className="pointer-events-auto bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10.5px] px-4 py-2.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-400/20 border border-amber-300/35 cursor-pointer font-sans"
+            id="tesla-apk-downloader"
+          >
+            <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
+            <span>Tesla App</span>
+          </motion.button>
         </div>
 
         {/* Fixed bottom dashboard menu tabs controller */}

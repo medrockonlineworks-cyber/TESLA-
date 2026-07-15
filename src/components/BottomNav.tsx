@@ -16,7 +16,7 @@ export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmi
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-slate-200/80 backdrop-blur-md pb-safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-slate-100 backdrop-blur-md pb-safe-bottom">
       <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between relative">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -31,23 +31,23 @@ export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmi
               <div
                 className={`p-1.5 rounded-xl transition-all ${
                   isActive
-                    ? 'text-indigo-600 scale-110 bg-indigo-50'
+                    ? 'text-amber-600 scale-110 bg-amber-50'
                     : 'text-slate-400 group-hover:text-slate-600'
                 }`}
               >
                 <Icon className="w-5 h-5" />
               </div>
               <span
-                className={`text-[10px] font-medium font-mono mt-0.5 tracking-wider transition-colors ${
-                  isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+                className={`text-[10px] font-semibold font-sans mt-0.5 tracking-wider transition-colors ${
+                  isActive ? 'text-amber-600' : 'text-slate-400 group-hover:text-slate-600'
                 }`}
               >
                 {tab.label}
               </span>
 
-              {/* Glowing active indigo dot */}
+              {/* Glowing active yellow dot */}
               {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-indigo-600 rounded-full shadow-[0_0_8px_#4f46e5]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[#fbbc05] rounded-full shadow-sm" />
               )}
             </button>
           );
@@ -57,7 +57,7 @@ export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmi
         {isAdmin && (
           <button
             onClick={onOpenAdmin}
-            className="absolute -top-12 right-6 p-2.5 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer border border-white z-50 flex items-center justify-center animate-bounce"
+            className="absolute -top-12 right-6 p-2.5 bg-[#fbbc05] text-slate-950 rounded-full shadow-lg hover:bg-[#e2a804] active:scale-95 transition-all cursor-pointer border border-slate-200 z-50 flex items-center justify-center animate-bounce"
             title="Open Admin Panel"
           >
             <ShieldAlert className="w-5 h-5" />
