@@ -35,6 +35,30 @@ export default function HomeTab({
   const [orderId, setOrderId] = useState('');
   const [countdown, setCountdown] = useState(600); // 10 minutes
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [investingPlanId, setInvestingPlanId] = useState<string | null>(null);
+
+  const handleInvestButtonClick = async (plan: InvestmentPlan) => {
+    if (user.balance >= plan.amount) {
+      setInvestingPlanId(plan.id);
+      try {
+        await onInvest(plan.id, plan.amount, plan.return_amount, plan.duration_hours);
+        const successMessage = lang === 'en'
+          ? `Successfully invested ${formatAmount(plan.amount)} in ${getPlanName(plan)}!`
+          : `${getPlanName(plan)} ላይ በተሳካ ሁኔታ ${formatAmount(plan.amount)} ኢንቨስት ተደርጓል!`;
+        showToast(successMessage, 'success');
+      } catch (err: any) {
+        showToast(err.message || 'Investment failed.', 'error');
+      } finally {
+        setInvestingPlanId(null);
+      }
+    } else {
+      const warningMessage = lang === 'en'
+        ? `Insufficient wallet balance. Redirecting to recharge page...`
+        : `በቂ የኪስ ቦርሳ ቀሪ ሂሳብ የለም። ወደ መሙያ ገጽ እየቀየርን ነው...`;
+      showToast(warningMessage, 'info');
+      setActiveTab('wallet');
+    }
+  };
 
   // Countdown timer effect
   useEffect(() => {
@@ -331,10 +355,15 @@ export default function HomeTab({
               {/* Yellow Invest Button */}
               <button
                 type="button"
-                onClick={() => handleSelectPlan(plan)}
-                className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10px] uppercase tracking-wider py-2.5 mt-4 rounded-xl cursor-pointer transition-all duration-200 shadow-md shadow-[#fbbc05]/10"
+                onClick={() => handleInvestButtonClick(plan)}
+                disabled={investingPlanId !== null}
+                className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10px] uppercase tracking-wider py-2.5 mt-4 rounded-xl cursor-pointer transition-all duration-200 shadow-md shadow-[#fbbc05]/10 flex items-center justify-center min-h-[36px]"
               >
-                {t[lang].investNow}
+                {investingPlanId === plan.id ? (
+                  <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                ) : (
+                  t[lang].investNow
+                )}
               </button>
             </div>
           ))}
