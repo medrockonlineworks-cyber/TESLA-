@@ -264,7 +264,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center">
       {/* Simulate Phone enclosure frame on Desktop */}
-      <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl bg-white relative md:my-6 overflow-hidden flex flex-col text-slate-900">
+      <div className="w-full max-w-md h-screen md:h-[850px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl bg-white relative md:my-6 overflow-hidden flex flex-col text-slate-900">
         
         {/* Top status rail bar mockup (Locked at top of viewport mockup) */}
         <div className="bg-white/95 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100 shrink-0 z-30">
@@ -328,7 +328,7 @@ export default function App() {
         </div>
 
         {/* Scrollable content container with static overlay tabs */}
-        <div className="flex-grow overflow-y-auto relative">
+        <div className="flex-grow overflow-y-auto relative pb-36">
           {/* Dynamic active tab page renderer with motion fade effect */}
           <div className="p-6">
             <AnimatePresence mode="wait">
