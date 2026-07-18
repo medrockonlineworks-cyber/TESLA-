@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DbUser, Deposit, Withdrawal, Investment, InvestmentPlan, Transaction, AgentAccount } from '../types';
+import { DbUser, Deposit, Withdrawal, Investment, InvestmentPlan, Transaction, AgentAccount, OfflinePaymentCode, CodeVerificationLog, OfflineWithdrawalCode, WithdrawalVerificationLog } from '../types';
 import { dbService } from '../services/db';
-import { Shield, Users, ArrowUpRight, ArrowDownLeft, Megaphone, FileText, Settings, X, Check, Trash, Plus, Eye, Key, Smartphone, ToggleLeft, ToggleRight, BarChart3, TrendingUp, AlertCircle } from 'lucide-react';
+import { Shield, Users, ArrowUpRight, ArrowDownLeft, Megaphone, FileText, Settings, X, Check, Trash, Plus, Eye, Key, Smartphone, ToggleLeft, ToggleRight, BarChart3, TrendingUp, AlertCircle, Clock, Copy, RefreshCw, History, UserCheck, ShieldAlert } from 'lucide-react';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -16,7 +16,7 @@ interface AdminPanelProps {
   lang: 'en' | 'am';
 }
 
-type AdminSubTab = 'recharges' | 'withdrawals' | 'users' | 'plans' | 'announcements' | 'investments' | 'agents' | 'reports';
+type AdminSubTab = 'recharges' | 'withdrawals' | 'users' | 'plans' | 'announcements' | 'investments' | 'agents' | 'reports' | 'offline_codes';
 
 export default function AdminPanel({
   onClose,
@@ -56,6 +56,56 @@ export default function AdminPanel({
   const [newAgentNumber, setNewAgentNumber] = useState('');
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
+  // Secure Cryptographic Offline Payment Verification states
+  const [offlineType, setOfflineType] = useState<'recharge' | 'withdrawal'>('recharge');
+  const [offlineCodes, setOfflineCodes] = useState<OfflinePaymentCode[]>([]);
+  const [offlineWithdrawalCodes, setOfflineWithdrawalCodes] = useState<OfflineWithdrawalCode[]>([]);
+  const [loadingOfflineCodes, setLoadingOfflineCodes] = useState(false);
+  const [verificationLogs, setVerificationLogs] = useState<CodeVerificationLog[]>([]);
+  const [withdrawalVerificationLogs, setWithdrawalVerificationLogs] = useState<WithdrawalVerificationLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  // Form states
+  const [genEmail, setGenEmail] = useState('');
+  const [genAmount, setGenAmount] = useState('');
+  const [genTxid, setGenTxid] = useState('');
+  const [genDuration, setGenDuration] = useState('10');
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [generatedCodeObj, setGeneratedCodeObj] = useState<OfflinePaymentCode | null>(null);
+  const [generatedWithdrawalCodeObj, setGeneratedWithdrawalCodeObj] = useState<OfflineWithdrawalCode | null>(null);
+
+  // Search & Filters
+  const [codeSearchQuery, setCodeSearchQuery] = useState('');
+  const [codeFilterStatus, setCodeFilterStatus] = useState<'all' | 'pending' | 'completed' | 'expired'>('all');
+
+  const fetchOfflineCodesAndLogs = async () => {
+    setLoadingOfflineCodes(true);
+    setLoadingLogs(true);
+    try {
+      const [codesList, logsList, wCodesList, wLogsList] = await Promise.all([
+        dbService.getOfflineCodes(),
+        dbService.getVerificationLogs(),
+        dbService.getOfflineWithdrawalCodes(),
+        dbService.getWithdrawalVerificationLogs()
+      ]);
+      setOfflineCodes(codesList);
+      setVerificationLogs(logsList);
+      setOfflineWithdrawalCodes(wCodesList);
+      setWithdrawalVerificationLogs(wLogsList);
+    } catch (err) {
+      console.error('Failed to sync offline payment/withdrawal data:', err);
+    } finally {
+      setLoadingOfflineCodes(false);
+      setLoadingLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'offline_codes') {
+      fetchOfflineCodesAndLogs();
+    }
+  }, [activeSubTab]);
+
   const t = {
     en: {
       adminConsole: "Admin Console",
@@ -67,6 +117,23 @@ export default function AdminPanel({
       stakes: "Stakes",
       agents: "Agents",
       reports: "Reports",
+      offlineCodes: "Offline Codes",
+      offlineCodesDesc: "Secure Cryptographic Verification",
+      generateCodeBtn: "Generate Secure Verification Code",
+      userEmailLabel: "User Email Address",
+      rechargeAmtLabel: "Recharge Amount (USD / ETB)",
+      bankTxLabel: "Bank Transaction Reference (TXID)",
+      expiresInLabel: "Expiration Time (Minutes)",
+      clearExpiredBtn: "Delete Expired Codes",
+      searchByEmailOrTx: "Search by Email or TXID...",
+      noOfflineCodes: "No cryptographic payment codes found.",
+      auditVerificationLogs: "System Verification Attempts Logs",
+      noLogsFound: "No verification audit attempts logged yet.",
+      welcomeBack: "Welcome Back",
+      unexpectedErr: "An unexpected error occurred.",
+      demoCredentialsFilled: "Demo credentials pre-filled.",
+      fillMemberDemo: "Fill Member Demo",
+      loginAdmin: "Login as Admin",
       pendingRecharges: "Pending Recharge Clearances",
       noPendingRecharges: "No pending recharge tickets in ledger.",
       pendingWithdrawals: "Pending Withdrawal Payouts",
@@ -118,6 +185,23 @@ export default function AdminPanel({
       stakes: "ንቁ እቅዶች",
       agents: "ወኪሎች",
       reports: "ሪፖርቶች",
+      offlineCodes: "ከመስመር ውጭ ኮዶች",
+      offlineCodesDesc: "ደህንነቱ የተጠበቀ ምስጠራ ማረጋገጫ",
+      generateCodeBtn: "የማረጋገጫ ኮድ ፍጠር",
+      userEmailLabel: "የተጠቃሚው ኢሜይል አድራሻ",
+      rechargeAmtLabel: "የመሙያ መጠን (USD / ETB)",
+      bankTxLabel: "የባንክ ማስተላለፊያ ማጣቀሻ (TXID)",
+      expiresInLabel: "የማለፊያ ጊዜ (በደቂቃዎች)",
+      clearExpiredBtn: "ጊዜያቸው ያለፈባቸውን ሰርዝ",
+      searchByEmailOrTx: "በኢሜይል ወይም በTXID ይፈልጉ...",
+      noOfflineCodes: "ምንም ምስጠራ ኮዶች አልተገኙም።",
+      auditVerificationLogs: "የማረጋገጫ ሙከራዎች የምዝግብ ማስታወሻ",
+      noLogsFound: "እስካሁን ምንም የማረጋገጫ ሙከራዎች አልተመዘገቡም።",
+      welcomeBack: "እንኳን ደህና መጡ",
+      unexpectedErr: "ያልተጠበቀ ስህተት ተከስቷል።",
+      demoCredentialsFilled: "የሙከራ ማስረጃዎች ተሞልተዋል።",
+      fillMemberDemo: "የአባል ሙከራ ይሙሉ።",
+      loginAdmin: "እንደ አስተዳዳሪ ይግቡ",
       pendingRecharges: "በመጠባበቅ ላይ ያሉ የገንዘብ ማስገቢያዎች",
       noPendingRecharges: "ምንም በመጠባበቅ ላይ ያሉ የገንዘብ ማስገቢያዎች የሉም።",
       pendingWithdrawals: "በመጠባበቅ ላይ ያሉ የገንዘብ ወጪዎች",
@@ -219,6 +303,106 @@ export default function AdminPanel({
       await fetchAgents();
     } catch (err: any) {
       showToast(err.message || 'Failed to delete agent account.', 'error');
+    }
+  };
+
+  // SECURE CRYPTOGRAPHIC OFFLINE VERIFICATION ACTION HANDLERS
+  const handleGenerateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!genEmail.trim() || !genAmount || !genTxid.trim()) {
+      showToast('Please fill out all cryptographic verification parameters.', 'error');
+      return;
+    }
+
+    const matchedUser = users.find(u => u.email.toLowerCase() === genEmail.toLowerCase().trim());
+    if (!matchedUser) {
+      showToast('Error: No registered system user profile found matching this email address.', 'error');
+      return;
+    }
+
+    setGeneratingCode(true);
+    setGeneratedCodeObj(null);
+    try {
+      const codeRecord = await dbService.generateOfflineCode(
+        matchedUser.email,
+        parseFloat(genAmount),
+        genTxid.trim().toUpperCase(),
+        parseInt(genDuration) || 10,
+        'admin_panel',
+        matchedUser.id
+      );
+      setGeneratedCodeObj(codeRecord);
+      showToast('Secure offline cryptographic code generated successfully!', 'success');
+      setGenAmount('');
+      setGenTxid('');
+      await fetchOfflineCodesAndLogs();
+      await onRefreshData(); // refresh parent ledger
+    } catch (err: any) {
+      showToast(err.message || 'Failed to generate cryptographic code.', 'error');
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const handleDeleteExpired = async () => {
+    if (!window.confirm('Are you sure you want to prune and clear all expired pending verification tickets from the ledger?')) return;
+    try {
+      const res = await dbService.deleteExpiredOfflineCodes();
+      showToast(`Audit Ledger Purged: Cleared ${res.deleted} expired pending tickets.`, 'info');
+      await fetchOfflineCodesAndLogs();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to prune expired codes.', 'error');
+    }
+  };
+
+  const handleGenerateWithdrawalCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!genEmail.trim() || !genAmount) {
+      showToast('Please fill out all cryptographic verification parameters.', 'error');
+      return;
+    }
+
+    const matchedUser = users.find(u => u.email.toLowerCase() === genEmail.toLowerCase().trim());
+    if (!matchedUser) {
+      showToast('Error: No registered system user profile found matching this email address.', 'error');
+      return;
+    }
+
+    if (matchedUser.balance < parseFloat(genAmount)) {
+      showToast(`Warning: User only has a balance of $${matchedUser.balance.toFixed(2)}. Generating a withdrawal code of $${parseFloat(genAmount).toFixed(2)} exceeds their balance.`, 'error');
+      return;
+    }
+
+    setGeneratingCode(true);
+    setGeneratedWithdrawalCodeObj(null);
+    try {
+      const codeRecord = await dbService.generateOfflineWithdrawalCode(
+        matchedUser.email,
+        parseFloat(genAmount),
+        parseInt(genDuration) || 10,
+        'admin_panel',
+        matchedUser.id
+      );
+      setGeneratedWithdrawalCodeObj(codeRecord);
+      showToast('Secure offline cryptographic withdrawal code generated successfully!', 'success');
+      setGenAmount('');
+      await fetchOfflineCodesAndLogs();
+      await onRefreshData(); // refresh parent ledger
+    } catch (err: any) {
+      showToast(err.message || 'Failed to generate cryptographic withdrawal code.', 'error');
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const handleDeleteExpiredWithdrawal = async () => {
+    if (!window.confirm('Are you sure you want to prune and clear all expired pending withdrawal verification tickets from the ledger?')) return;
+    try {
+      const res = await dbService.deleteExpiredOfflineWithdrawalCodes();
+      showToast(`Audit Ledger Purged: Cleared ${res.deleted} expired pending tickets.`, 'info');
+      await fetchOfflineCodesAndLogs();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to prune expired withdrawal codes.', 'error');
     }
   };
 
@@ -366,6 +550,7 @@ export default function AdminPanel({
             { id: 'announcements', label: t[lang].broadcast, icon: Megaphone },
             { id: 'investments', label: t[lang].stakes, icon: FileText },
             { id: 'agents', label: t[lang].agents, icon: Smartphone },
+            { id: 'offline_codes', label: t[lang].offlineCodes, icon: Key },
             { id: 'reports', label: t[lang].reports, icon: BarChart3 },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -918,7 +1103,399 @@ export default function AdminPanel({
           </div>
         )}
 
-        {/* 8. REPORTS & ANALYTICS */}
+        {/* 8. SECURE OFFLINE CODES GENERATION & AUDIT LEDGER */}
+        {activeSubTab === 'offline_codes' && (
+          <div className="space-y-6">
+            {/* Toggle between Recharges and Withdrawals */}
+            <div className="flex bg-black p-1 rounded-xl border border-zinc-900 gap-1">
+              <button
+                onClick={() => {
+                  setOfflineType('recharge');
+                  setGeneratedCodeObj(null);
+                  setGeneratedWithdrawalCodeObj(null);
+                }}
+                className={`flex-1 py-2 rounded-lg font-mono font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  offlineType === 'recharge'
+                    ? 'bg-zinc-900 text-[#fbbc05]'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                Deposit Codes
+              </button>
+              <button
+                onClick={() => {
+                  setOfflineType('withdrawal');
+                  setGeneratedCodeObj(null);
+                  setGeneratedWithdrawalCodeObj(null);
+                }}
+                className={`flex-1 py-2 rounded-lg font-mono font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  offlineType === 'withdrawal'
+                    ? 'bg-zinc-900 text-[#fbbc05]'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                <ArrowDownLeft className="w-3.5 h-3.5" />
+                Withdrawal Codes
+              </button>
+            </div>
+
+            {/* Generate form */}
+            <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4.5 space-y-4 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#fbbc05]/5 rounded-full blur-2xl" />
+              <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
+                <Key className="w-4 h-4 text-[#fbbc05]" />
+                <div>
+                  <h3 className="text-xs font-bold font-mono tracking-wider uppercase text-zinc-200">
+                    {offlineType === 'recharge' ? t[lang].offlineCodes : "Offline Withdrawal Codes"}
+                  </h3>
+                  <p className="text-[9px] text-zinc-500 font-sans">
+                    {offlineType === 'recharge' ? t[lang].offlineCodesDesc : "Secure offline cryptographic withdrawal codes"}
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={offlineType === 'recharge' ? handleGenerateCode : handleGenerateWithdrawalCode} className="space-y-3 font-sans">
+                {/* Email input with match list */}
+                <div className="relative space-y-1">
+                  <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].userEmailLabel}</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Enter or select user email"
+                    value={genEmail}
+                    onChange={(e) => setGenEmail(e.target.value)}
+                    className="w-full bg-black border border-zinc-800 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-xs text-white px-3 py-2.5 rounded-lg transition-all font-sans"
+                  />
+                  {genEmail && (() => {
+                    const matchedUser = users.find(u => u.email.toLowerCase().includes(genEmail.toLowerCase()));
+                    if (matchedUser && matchedUser.email.toLowerCase() !== genEmail.toLowerCase()) {
+                      return (
+                        <div className="absolute z-10 w-full bg-zinc-950 border border-zinc-900 rounded-lg mt-1 max-h-32 overflow-y-auto shadow-2xl">
+                          <button
+                            type="button"
+                            onClick={() => setGenEmail(matchedUser.email)}
+                            className="w-full text-left px-3 py-2 text-[10px] text-zinc-300 hover:bg-[#fbbc05]/10 hover:text-[#fbbc05] font-mono transition-colors border-b border-zinc-900 last:border-0"
+                          >
+                            Match: <span className="text-[#fbbc05] font-bold">{matchedUser.full_name}</span> ({matchedUser.email})
+                          </button>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">
+                      {offlineType === 'recharge' ? t[lang].rechargeAmtLabel : "Withdrawal Amount (USD)"}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      placeholder="e.g. 50"
+                      value={genAmount}
+                      onChange={(e) => setGenAmount(e.target.value)}
+                      className="w-full bg-black border border-zinc-800 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-xs text-white px-3 py-2.5 rounded-lg transition-all font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].expiresInLabel}</label>
+                    <select
+                      value={genDuration}
+                      onChange={(e) => setGenDuration(e.target.value)}
+                      className="w-full bg-black border border-zinc-800 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-xs text-white px-3 py-2.5 rounded-lg transition-all font-mono"
+                    >
+                      <option value="5">5 Minutes</option>
+                      <option value="10">10 Minutes</option>
+                      <option value="30">30 Minutes</option>
+                      <option value="60">1 Hour</option>
+                      <option value="1440">24 Hours</option>
+                    </select>
+                  </div>
+                </div>
+
+                {offlineType === 'recharge' && (
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase tracking-wider text-zinc-400 font-mono">{t[lang].bankTxLabel}</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. FT23019842X"
+                      value={genTxid}
+                      onChange={(e) => setGenTxid(e.target.value)}
+                      className="w-full bg-black border border-zinc-800 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-xs text-white px-3 py-2.5 rounded-lg transition-all font-mono uppercase"
+                    />
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={generatingCode}
+                  className="w-full bg-[#fbbc05] hover:bg-[#f2b004] text-slate-950 font-mono font-bold text-[10px] uppercase py-3 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 tracking-wider mt-4"
+                >
+                  {generatingCode ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Key className="w-3.5 h-3.5" />
+                      {offlineType === 'recharge' ? t[lang].generateCodeBtn : "Generate Secure Withdrawal Code"}
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Show generated code outcome */}
+              {offlineType === 'recharge' && generatedCodeObj && (
+                <div className="bg-[#fbbc05]/10 border border-[#fbbc05]/35 p-4 rounded-xl space-y-2.5 text-center relative overflow-hidden animate-pulse">
+                  <span className="text-[8px] text-[#fbbc05] uppercase tracking-widest font-mono font-bold">Secure Cryptographic Code Generated</span>
+                  <div className="text-xl font-black font-mono tracking-widest text-white selection:bg-[#fbbc05]/40 select-all">
+                    {generatedCodeObj.verification_code}
+                  </div>
+                  <div className="flex gap-2 justify-center mt-1">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedCodeObj.verification_code);
+                        showToast('Verification Code Copied to Clipboard!', 'success');
+                      }}
+                      className="bg-[#fbbc05]/20 hover:bg-[#fbbc05]/30 text-[#fbbc05] text-[10px] py-1 px-3 rounded border border-[#fbbc05]/20 font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Copy className="w-3 h-3" />
+                      Copy Code
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 font-sans leading-normal">
+                    This single-use validation ticket is cryptographically bound to <span className="text-[#fbbc05] font-mono">{generatedCodeObj.user_email}</span>. Expiry: {new Date(generatedCodeObj.expires_at).toLocaleTimeString()}.
+                  </p>
+                </div>
+              )}
+
+              {offlineType === 'withdrawal' && generatedWithdrawalCodeObj && (
+                <div className="bg-[#fbbc05]/10 border border-[#fbbc05]/35 p-4 rounded-xl space-y-2.5 text-center relative overflow-hidden animate-pulse">
+                  <span className="text-[8px] text-[#fbbc05] uppercase tracking-widest font-mono font-bold">Secure Cryptographic Withdrawal Code Generated</span>
+                  <div className="text-xl font-black font-mono tracking-widest text-white selection:bg-[#fbbc05]/40 select-all">
+                    {generatedWithdrawalCodeObj.verification_code}
+                  </div>
+                  <div className="flex gap-2 justify-center mt-1">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedWithdrawalCodeObj.verification_code);
+                        showToast('Withdrawal Code Copied to Clipboard!', 'success');
+                      }}
+                      className="bg-[#fbbc05]/20 hover:bg-[#fbbc05]/30 text-[#fbbc05] text-[10px] py-1 px-3 rounded border border-[#fbbc05]/20 font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Copy className="w-3 h-3" />
+                      Copy Code
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 font-sans leading-normal">
+                    This single-use withdrawal ticket is cryptographically bound to <span className="text-[#fbbc05] font-mono">{generatedWithdrawalCodeObj.user_email}</span>. Expiry: {new Date(generatedWithdrawalCodeObj.expires_at).toLocaleTimeString()}.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* List & Audit Search block */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                  {offlineType === 'recharge' ? 'Active Deposit Tickets' : 'Active Withdrawal Tickets'}
+                </h3>
+                <button
+                  onClick={offlineType === 'recharge' ? handleDeleteExpired : handleDeleteExpiredWithdrawal}
+                  className="text-[9px] font-mono uppercase tracking-widest bg-red-950/20 border border-red-950/45 text-red-400 hover:bg-red-900/30 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Trash className="w-3 h-3" />
+                  {t[lang].clearExpiredBtn}
+                </button>
+              </div>
+
+              {/* Search input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by email or code..."
+                  value={codeSearchQuery}
+                  onChange={(e) => setCodeSearchQuery(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-900 outline-none text-xs text-white px-3.5 py-2.5 rounded-xl transition-all focus:border-[#fbbc05]"
+                />
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[9px] font-mono">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'pending', label: 'Pending' },
+                  { id: 'completed', label: 'Completed' },
+                  { id: 'expired', label: 'Expired' }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setCodeFilterStatus(f.id as any)}
+                    className={`px-3 py-1.5 rounded-lg border uppercase font-bold tracking-wider transition-all cursor-pointer ${
+                      codeFilterStatus === f.id
+                        ? 'bg-zinc-800 border-zinc-700 text-white'
+                        : 'bg-zinc-950/50 border-zinc-900 text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Render tickets list */}
+              {loadingOfflineCodes ? (
+                <div className="text-center py-6">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#fbbc05]" />
+                </div>
+              ) : (() => {
+                const activeList = offlineType === 'recharge' ? offlineCodes : offlineWithdrawalCodes;
+                const filtered = activeList.filter(c => {
+                  const matchQuery = c.user_email.toLowerCase().includes(codeSearchQuery.toLowerCase()) ||
+                                     c.verification_code.toLowerCase().includes(codeSearchQuery.toLowerCase()) ||
+                                     ((c as any).txid && (c as any).txid.toLowerCase().includes(codeSearchQuery.toLowerCase()));
+                  
+                  if (codeFilterStatus === 'all') return matchQuery;
+                  if (codeFilterStatus === 'pending') return matchQuery && !c.used && new Date(c.expires_at).getTime() >= Date.now();
+                  if (codeFilterStatus === 'completed') return matchQuery && c.used;
+                  if (codeFilterStatus === 'expired') return matchQuery && !c.used && new Date(c.expires_at).getTime() < Date.now();
+                  return matchQuery;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="bg-zinc-900/10 border border-zinc-900 rounded-2xl p-6 text-center text-xs font-mono text-zinc-500">
+                      No cryptographic codes found in this category.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-2">
+                    {filtered.map((c) => {
+                      const isExpired = new Date(c.expires_at).getTime() < Date.now();
+                      const statusPill = c.used 
+                        ? { text: 'COMPLETED', bg: 'bg-green-950/40 text-green-400 border-green-900/40' }
+                        : isExpired
+                        ? { text: 'EXPIRED', bg: 'bg-red-950/40 text-red-400 border-red-900/40' }
+                        : { text: 'PENDING', bg: 'bg-[#fbbc05]/10 text-[#fbbc05] border-[#fbbc05]/20' };
+
+                      return (
+                        <div key={c.id} className="bg-zinc-950 border border-zinc-900 p-3.5 rounded-2xl space-y-2 font-mono text-[11px]">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-white text-xs">{c.verification_code}</span>
+                            <span className={`px-2 py-0.5 rounded text-[8px] border font-bold ${statusPill.bg}`}>
+                              {statusPill.text}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400 border-t border-zinc-900 pt-2 font-sans">
+                            <div>
+                              <span className="text-zinc-600 block text-[8px] uppercase font-mono">User / Beneficiary</span>
+                              <span className="text-white font-mono break-all leading-normal">{c.user_email}</span>
+                            </div>
+                            <div>
+                              <span className="text-zinc-600 block text-[8px] uppercase font-mono">
+                                {offlineType === 'recharge' ? "Recharge / TXID" : "Withdrawal / Amount"}
+                              </span>
+                              <span className="text-[#fbbc05] font-mono leading-normal font-bold">
+                                ${c.amount.toFixed(2)} {offlineType === 'recharge' ? `/ ${(c as any).txid}` : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center text-[9px] pt-1 border-t border-zinc-900">
+                            <span className="text-zinc-500">
+                              {c.used 
+                                ? `Verified at ${new Date(c.verified_at || '').toLocaleTimeString()}`
+                                : `Expires at ${new Date(c.expires_at).toLocaleTimeString()}`
+                              }
+                            </span>
+                            {!c.used && !isExpired && (
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(c.verification_code);
+                                  showToast('Code Copied!', 'success');
+                                }}
+                                className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 p-1.5 rounded transition-all cursor-pointer flex items-center gap-1 border border-zinc-800 hover:border-zinc-700"
+                              >
+                                <Copy className="w-3 h-3" />
+                                Copy Code
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Verification attempts logs */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <History className="w-4 h-4 text-zinc-400" />
+                <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-400">
+                  {offlineType === 'recharge' ? t[lang].auditVerificationLogs : "Withdrawal Verification Attempts Logs"}
+                </h3>
+              </div>
+
+              {loadingLogs ? (
+                <div className="text-center py-4">
+                  <RefreshCw className="w-4 h-4 animate-spin mx-auto text-zinc-500" />
+                </div>
+              ) : (() => {
+                const activeLogs = offlineType === 'recharge' ? verificationLogs : withdrawalVerificationLogs;
+                if (activeLogs.length === 0) {
+                  return (
+                    <div className="bg-zinc-900/10 border border-zinc-900 rounded-xl p-4 text-center text-[10px] font-mono text-zinc-600">
+                      No verification attempts logged yet in this category.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden divide-y divide-zinc-900">
+                    {activeLogs.map((l) => (
+                      <div key={l.id} className="p-3 font-mono text-[10px] space-y-1.5 leading-tight">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-zinc-300">{l.verification_code}</span>
+                          {l.success ? (
+                            <span className="text-green-400 font-bold flex items-center gap-0.5">
+                              <Check className="w-3 h-3" />
+                              SUCCESS
+                            </span>
+                          ) : (
+                            <span className="text-red-400 font-bold flex items-center gap-0.5" title={l.error_message}>
+                              <ShieldAlert className="w-3 h-3" />
+                              FAILED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-zinc-500 text-[9px]">
+                          <span>User: {l.user_email}</span>
+                          <span>{new Date(l.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        {l.error_message && (
+                          <p className="text-red-400/80 bg-red-950/10 border border-red-950/25 p-1.5 rounded text-[8px] break-all leading-normal mt-1">
+                            Reason: {l.error_message}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
+
+        {/* 9. REPORTS & ANALYTICS */}
         {activeSubTab === 'reports' && (() => {
           const totalUsers = users.length;
           const totalApprovedDeposits = deposits

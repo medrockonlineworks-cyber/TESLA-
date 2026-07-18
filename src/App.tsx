@@ -8,6 +8,7 @@ import InvestTab from './components/InvestTab';
 import WalletTab from './components/WalletTab';
 import ProfileTab from './components/ProfileTab';
 import AdminPanel from './components/AdminPanel';
+import AppDownloadModal from './components/AppDownloadModal';
 import { ShieldCheck, Sparkles, Smartphone, CheckCircle, AlertTriangle, Info, Moon, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -21,6 +22,7 @@ export default function App() {
   const [user, setUser] = useState<DbUser | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'invest' | 'wallet' | 'profile'>('home');
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [appReady, setAppReady] = useState(false);
 
   // Display Currency State & Conversion logic (1 USD = 120 ETB)
@@ -207,20 +209,7 @@ export default function App() {
 
   // Download APK handler
   const handleDownloadApp = () => {
-    showToast("Downloading official Tesla Investment App package...", "success");
-    
-    const blob = new Blob(
-      ["Tesla Investment Limited - Official Android App (v1.0.4). Install this app on your Android device to start staking energy pools and manage your CBE/Telebirr portfolio with absolute freedom!"],
-      { type: "application/vnd.android.package-archive" }
-    );
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "Tesla_Investment_Limited_v1.0.4.apk";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setShowDownloadModal(true);
   };
 
   // Show Loading Spinner on boot
@@ -275,10 +264,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center">
       {/* Simulate Phone enclosure frame on Desktop */}
-      <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl overflow-y-auto bg-white relative md:my-6 pb-20 text-slate-900">
+      <div className="w-full max-w-md min-h-screen md:min-h-[850px] md:max-h-[900px] md:border md:border-slate-200 md:rounded-[40px] md:shadow-2xl bg-white relative md:my-6 overflow-hidden flex flex-col text-slate-900">
         
-        {/* Top status rail bar mockup */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100">
+        {/* Top status rail bar mockup (Locked at top of viewport mockup) */}
+        <div className="bg-white/95 backdrop-blur-md px-6 py-3 flex items-center justify-between border-b border-slate-100 shrink-0 z-30">
           <div className="flex items-center gap-1.5 text-slate-900">
             <span className="w-2 h-2 rounded-full bg-[#fbbc05] animate-ping shadow-[0_0_6px_#fbbc05]" />
             <span className="text-[10px] font-mono tracking-widest uppercase font-bold">TESLA INVESTMENT LIMITED</span>
@@ -338,10 +327,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* Dynamic active tab page renderer with motion fade effect */}
-        <div className="p-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'home' && (
+        {/* Scrollable content container with static overlay tabs */}
+        <div className="flex-grow overflow-y-auto relative">
+          {/* Dynamic active tab page renderer with motion fade effect */}
+          <div className="p-6">
+            <AnimatePresence mode="wait">
+              {activeTab === 'home' && (
               <HomeTab
                 user={user}
                 plans={plans}
@@ -378,6 +369,7 @@ export default function App() {
                 currency={currency}
                 formatAmount={formatAmount}
                 lang={lang}
+                onRefresh={handleDataRefresh}
               />
             )}
             {activeTab === 'profile' && (
@@ -393,65 +385,83 @@ export default function App() {
             )}
           </AnimatePresence>
         </div>
+      </div> {/* CLOSING the flex-grow overflow-y-auto scrolling view container */}
 
-        {/* Simulated device screen absolute notification stack */}
-        <div className="absolute top-16 left-4 right-4 z-50 space-y-2 pointer-events-none">
-          <AnimatePresence>
-            {toasts.map((toast) => (
-              <motion.div
-                key={toast.id}
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                className={`p-3.5 rounded-xl border shadow-lg flex items-start gap-2.5 backdrop-blur-md pointer-events-auto ${
-                  toast.type === 'success'
-                    ? 'bg-white/95 border-emerald-200 text-emerald-800 shadow-emerald-100'
-                    : toast.type === 'error'
-                    ? 'bg-white/95 border-red-200 text-red-800 shadow-red-100'
-                    : 'bg-white/95 border-amber-200 text-amber-800 shadow-amber-100'
-                }`}
-              >
-                {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
-                {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />}
-                {toast.type === 'info' && <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />}
-                <p className="text-[11px] font-sans font-medium leading-relaxed">{toast.message}</p>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Floating Brand/Community Outreach Actions (Telegram + App Download) */}
-        <div className="fixed bottom-20 left-0 right-0 z-40 pointer-events-none">
-          <div className="max-w-md mx-auto px-6 flex justify-between items-center pointer-events-none">
-            {/* Telegram floating launcher button */}
-            <motion.a
-              href="https://t.me/tesla_investment_et"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => showToast("Opening Tesla Investment Official Telegram channel...", "info")}
-              className="pointer-events-auto w-11 h-11 rounded-full bg-[#229ED9] hover:bg-[#1d8fc4] flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/15 transition-all cursor-pointer"
-              id="telegram-link-launcher"
-              title="Join Telegram"
+      {/* Simulated device screen absolute notification stack */}
+      <div className="absolute top-16 left-4 right-4 z-50 space-y-2 pointer-events-none">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              className={`p-3.5 rounded-xl border shadow-lg flex items-start gap-2.5 backdrop-blur-md pointer-events-auto ${
+                toast.type === 'success'
+                  ? 'bg-white/95 border-emerald-200 text-emerald-800 shadow-emerald-100'
+                  : toast.type === 'error'
+                  ? 'bg-white/95 border-red-200 text-red-800 shadow-red-100'
+                  : 'bg-white/95 border-amber-200 text-amber-800 shadow-amber-100'
+              }`}
             >
-              <Send className="w-4.5 h-4.5 -translate-x-[1px] translate-y-[0.5px]" />
-            </motion.a>
+              {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+              {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />}
+              {toast.type === 'info' && <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />}
+              <p className="text-[11px] font-sans font-medium leading-relaxed">{toast.message}</p>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
-            {/* Tesla App Download floating button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleDownloadApp}
-              className="pointer-events-auto bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10.5px] px-4 py-2.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-400/20 border border-amber-300/35 cursor-pointer font-sans"
-              id="tesla-apk-downloader"
-            >
-              <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
-              <span>Tesla App</span>
-            </motion.button>
-          </div>
+      {/* Static Brand/Community Outreach Actions (Telegram + App Download) - Absolute within phone chassis */}
+      <div className="absolute bottom-20 left-0 right-0 z-40 pointer-events-none">
+        <div className="max-w-md mx-auto px-6 flex justify-between items-center pointer-events-none">
+          {/* Telegram premium glassmorphic pulsing floating launcher button */}
+          <motion.a
+            href="https://t.me/tesla_investment_et"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            animate={{
+              boxShadow: [
+                "0 0 4px rgba(34,158,217,0.2)",
+                "0 0 12px rgba(34,158,217,0.7)",
+                "0 0 4px rgba(34,158,217,0.2)"
+              ],
+              borderColor: [
+                "rgba(34,158,217,0.35)",
+                "rgba(34,158,217,0.85)",
+                "rgba(34,158,217,0.35)"
+              ]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            onClick={() => showToast("Opening Tesla Investment Official Telegram channel...", "info")}
+            className="pointer-events-auto w-12 h-12 rounded-full bg-[#229ED9]/15 hover:bg-[#229ED9]/30 backdrop-blur-md flex items-center justify-center text-white border transition-all cursor-pointer shadow-lg"
+            id="telegram-link-launcher"
+            title="Join Telegram"
+          >
+            <Send className="w-5 h-5 -translate-x-[0.5px] translate-y-[0.5px] text-[#229ED9]" />
+          </motion.a>
+
+          {/* Tesla App Download static floating button */}
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleDownloadApp}
+            className="pointer-events-auto bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] text-slate-950 font-black text-[10.5px] px-4 py-2.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-400/20 border border-amber-300/35 cursor-pointer font-sans"
+            id="tesla-apk-downloader"
+          >
+            <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
+            <span>Tesla App</span>
+          </motion.button>
         </div>
+      </div>
 
         {/* Fixed bottom dashboard menu tabs controller */}
         <BottomNav
@@ -487,6 +497,15 @@ export default function App() {
                 lang={lang}
               />
             </motion.div>
+          )}
+
+          {showDownloadModal && (
+            <AppDownloadModal
+              isOpen={showDownloadModal}
+              onClose={() => setShowDownloadModal(false)}
+              showToast={showToast}
+              lang={lang}
+            />
           )}
         </AnimatePresence>
       </div>

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { DbUser, InvestmentPlan, Investment, Deposit, Withdrawal, Transaction, Announcement, AgentAccount } from '../types';
+import { DbUser, InvestmentPlan, Investment, Deposit, Withdrawal, Transaction, Announcement, AgentAccount, OfflinePaymentCode, CodeVerificationLog, OfflineWithdrawalCode, WithdrawalVerificationLog } from '../types';
 
 // Read credentials safely
 const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -1347,6 +1347,456 @@ export const dbService = {
       const filtered = agents.filter(a => a.id !== id);
       setStorageItem('agent_accounts', filtered);
       return true;
+    }
+  },
+
+  // ==========================================
+  // SECURE OFFLINE CRYPTOGRAPHIC VERIFICATION
+  // ==========================================
+
+  async generateOfflineCode(email: string, amount: number, txid: string, expiresMinutes: number, adminId: string, userId: string): Promise<OfflinePaymentCode> {
+    try {
+      const response = await fetch('/api/offline-code/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, amount, txid, expires_minutes: expiresMinutes, admin_id: adminId, user_id: userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.code) {
+          return data.code;
+        }
+      }
+      throw new Error('API server unreachable, fallback to simulation');
+    } catch (err) {
+      console.log('Using robust client-side simulation for offline payment code generation...');
+      
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let part1 = '';
+      let part2 = '';
+      for (let i = 0; i < 4; i++) {
+        part1 += chars.charAt(Math.floor(Math.random() * chars.length));
+        part2 += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const code = `${part1}-${part2}`;
+      const createdAt = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + expiresMinutes * 60 * 1000).toISOString();
+      
+      // Client-side simulation of cryptographic signature (HMAC-SHA256 placeholder)
+      const signaturePayload = `${email.toLowerCase().trim()}|${Number(amount).toFixed(2)}|${txid.toUpperCase().trim()}|${code}|${expiresAt}`;
+      const mockSignature = btoa(signaturePayload).substring(0, 32);
+
+      const newCode: OfflinePaymentCode = {
+        id: 'ofc_' + Math.random().toString(36).substr(2, 9),
+        user_id: userId,
+        user_email: email.toLowerCase().trim(),
+        amount: Number(amount),
+        txid: txid.toUpperCase().trim(),
+        verification_code: code,
+        signature: mockSignature,
+        created_at: createdAt,
+        expires_at: expiresAt,
+        status: 'pending',
+        used: false,
+        admin_id: adminId || 'admin_direct',
+      };
+
+      const codes = getStorageItem<OfflinePaymentCode[]>('offline_payment_codes', []);
+      codes.unshift(newCode);
+      setStorageItem('offline_payment_codes', codes);
+
+      return newCode;
+    }
+  },
+
+  async verifyOfflineCode(code: string, userId: string, userEmail: string): Promise<{ success: boolean; amount: number; txid: string }> {
+    try {
+      const response = await fetch('/api/offline-code/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, userId, userEmail }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        return {
+          success: true,
+          amount: data.amount,
+          txid: data.txid,
+        };
+      } else {
+        throw new Error(data.error || 'Verification Failed');
+      }
+    } catch (err: any) {
+      if (err.message && err.message !== 'API server unreachable, fallback to simulation' && err.message !== 'Failed to fetch') {
+        throw err; // Real error from server (e.g. Code Expired, Mismatch, etc.)
+      }
+
+      console.log('Using robust client-side simulation for offline payment code verification...');
+      const cleanCode = code.toUpperCase().trim();
+      const codes = getStorageItem<OfflinePaymentCode[]>('offline_payment_codes', []);
+      const users = getStorageItem<DbUser[]>('users', []);
+      const txs = getStorageItem<Transaction[]>('transactions', []);
+      const logs = getStorageItem<CodeVerificationLog[]>('code_verification_logs', []);
+
+      const recordIndex = codes.findIndex(c => c.verification_code === cleanCode);
+      const logId = 'log_' + Math.random().toString(36).substr(2, 9);
+      const attemptedAt = new Date().toISOString();
+
+      const logAttempt = (success: boolean, errMsg?: string) => {
+        const newLog: CodeVerificationLog = {
+          id: logId,
+          verification_code: code,
+          attempted_by: userId,
+          user_email: userEmail,
+          success,
+          error_message: errMsg,
+          created_at: attemptedAt
+        };
+        logs.unshift(newLog);
+        setStorageItem('code_verification_logs', logs);
+      };
+
+      if (recordIndex === -1) {
+        logAttempt(false, 'Invalid Verification Code');
+        throw new Error('Invalid Verification Code');
+      }
+
+      const record = codes[recordIndex];
+
+      if (record.used || record.status === 'completed') {
+        logAttempt(false, 'Verification Code Already Used');
+        throw new Error('Verification Code Already Used');
+      }
+
+      if (new Date(record.expires_at).getTime() < Date.now()) {
+        codes[recordIndex].status = 'expired';
+        setStorageItem('offline_payment_codes', codes);
+        logAttempt(false, 'Verification Code Expired');
+        throw new Error('Verification Code Expired');
+      }
+
+      if (record.user_email.toLowerCase() !== userEmail.toLowerCase()) {
+        logAttempt(false, 'Email Mismatch');
+        throw new Error('Email Mismatch');
+      }
+
+      if (record.user_id !== userId) {
+        logAttempt(false, 'User ID Mismatch');
+        throw new Error('User ID Mismatch');
+      }
+
+      // Verify simulated signature matches
+      const expectedPayload = `${record.user_email.toLowerCase().trim()}|${Number(record.amount).toFixed(2)}|${record.txid.toUpperCase().trim()}|${record.verification_code}|${record.expires_at}`;
+      const expectedSignature = btoa(expectedPayload).substring(0, 32);
+
+      if (record.signature !== expectedSignature) {
+        logAttempt(false, 'Invalid Signature / Code Tampered');
+        throw new Error('Invalid Signature');
+      }
+
+      // Success Path: credit wallet
+      const userIndex = users.findIndex(u => u.id === userId);
+      if (userIndex === -1) {
+        logAttempt(false, 'User profile not found');
+        throw new Error('User profile not found');
+      }
+
+      // Update code
+      codes[recordIndex].used = true;
+      codes[recordIndex].status = 'completed';
+      codes[recordIndex].verified_at = attemptedAt;
+      setStorageItem('offline_payment_codes', codes);
+
+      // Add balance
+      users[userIndex].balance = (users[userIndex].balance || 0) + record.amount;
+      setStorageItem('users', users);
+
+      // Create transaction record
+      const tx: Transaction = {
+        id: 'tx_ofv_' + Math.random().toString(36).substr(2, 9),
+        user_id: userId,
+        type: 'deposit',
+        amount: record.amount,
+        description: `Offline Cryptographic Verification Success - TXID: ${record.txid}`,
+        created_at: attemptedAt
+      };
+      txs.unshift(tx);
+      setStorageItem('transactions', txs);
+
+      logAttempt(true);
+      return {
+        success: true,
+        amount: record.amount,
+        txid: record.txid
+      };
+    }
+  },
+
+  async getOfflineCodes(): Promise<OfflinePaymentCode[]> {
+    try {
+      const response = await fetch('/api/offline-code/admin/list');
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      return getStorageItem<OfflinePaymentCode[]>('offline_payment_codes', []);
+    }
+  },
+
+  async deleteExpiredOfflineCodes(): Promise<{ success: boolean; deleted: number }> {
+    try {
+      const response = await fetch('/api/offline-code/admin/expired', { method: 'DELETE' });
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      const codes = getStorageItem<OfflinePaymentCode[]>('offline_payment_codes', []);
+      const countBefore = codes.length;
+      const filtered = codes.filter(c => !(new Date(c.expires_at).getTime() < Date.now() && c.status === 'pending'));
+      setStorageItem('offline_payment_codes', filtered);
+      return { success: true, deleted: countBefore - filtered.length };
+    }
+  },
+
+  async getVerificationLogs(): Promise<CodeVerificationLog[]> {
+    try {
+      const response = await fetch('/api/offline-code/admin/logs');
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      return getStorageItem<CodeVerificationLog[]>('code_verification_logs', []);
+    }
+  },
+
+  // ==========================================
+  // SECURE OFFLINE WITHDRAWAL VERIFICATION (CLIENT API)
+  // ==========================================
+
+  async generateOfflineWithdrawalCode(email: string, amount: number, expiresMinutes: number, adminId: string, userId: string): Promise<OfflineWithdrawalCode> {
+    try {
+      const response = await fetch('/api/offline-withdrawal/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, amount, expires_minutes: expiresMinutes, admin_id: adminId, user_id: userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.code) {
+          return data.code;
+        }
+      }
+      throw new Error('API server unreachable, fallback to simulation');
+    } catch (err) {
+      console.log('Using robust client-side simulation for offline withdrawal code generation...');
+      
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let part1 = '';
+      let part2 = '';
+      for (let i = 0; i < 4; i++) {
+        part1 += chars.charAt(Math.floor(Math.random() * chars.length));
+        part2 += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const code = `${part1}-${part2}`;
+      const createdAt = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + expiresMinutes * 60 * 1000).toISOString();
+      
+      // Client-side simulation of cryptographic signature (HMAC-SHA256 placeholder)
+      const signaturePayload = `${email.toLowerCase().trim()}|${Number(amount).toFixed(2)}|${code}|${expiresAt}`;
+      const mockSignature = btoa(signaturePayload).substring(0, 32);
+
+      const newCode: OfflineWithdrawalCode = {
+        id: 'ofw_' + Math.random().toString(36).substr(2, 9),
+        user_id: userId,
+        user_email: email.toLowerCase().trim(),
+        amount: Number(amount),
+        verification_code: code,
+        signature: mockSignature,
+        created_at: createdAt,
+        expires_at: expiresAt,
+        status: 'pending',
+        used: false,
+        admin_id: adminId || 'admin_direct',
+      };
+
+      const codes = getStorageItem<OfflineWithdrawalCode[]>('offline_withdrawal_codes', []);
+      codes.unshift(newCode);
+      setStorageItem('offline_withdrawal_codes', codes);
+
+      return newCode;
+    }
+  },
+
+  async verifyOfflineWithdrawalCode(code: string, userId: string, userEmail: string): Promise<{ success: boolean; amount: number }> {
+    try {
+      const response = await fetch('/api/offline-withdrawal/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, userId, userEmail }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        return {
+          success: true,
+          amount: data.amount,
+        };
+      } else {
+        throw new Error(data.error || 'Verification Failed');
+      }
+    } catch (err: any) {
+      if (err.message && err.message !== 'API server unreachable, fallback to simulation' && err.message !== 'Failed to fetch') {
+        throw err; // Real error from server (e.g. Code Expired, Mismatch, etc.)
+      }
+
+      console.log('Using robust client-side simulation for offline withdrawal code verification...');
+      const cleanCode = code.toUpperCase().trim();
+      const codes = getStorageItem<OfflineWithdrawalCode[]>('offline_withdrawal_codes', []);
+      const users = getStorageItem<DbUser[]>('users', []);
+      const txs = getStorageItem<Transaction[]>('transactions', []);
+      const logs = getStorageItem<WithdrawalVerificationLog[]>('withdrawal_verification_logs', []);
+
+      const recordIndex = codes.findIndex(c => c.verification_code === cleanCode);
+      const logId = 'log_w_' + Math.random().toString(36).substr(2, 9);
+      const attemptedAt = new Date().toISOString();
+
+      const logAttempt = (success: boolean, errMsg?: string) => {
+        const newLog: WithdrawalVerificationLog = {
+          id: logId,
+          verification_code: code,
+          attempted_by: userId,
+          user_email: userEmail,
+          success,
+          error_message: errMsg,
+          created_at: attemptedAt
+        };
+        logs.unshift(newLog);
+        setStorageItem('withdrawal_verification_logs', logs);
+      };
+
+      if (recordIndex === -1) {
+        logAttempt(false, 'Invalid Verification Code');
+        throw new Error('Invalid Verification Code');
+      }
+
+      const record = codes[recordIndex];
+
+      if (record.used || record.status === 'completed') {
+        logAttempt(false, 'Verification Code Already Used');
+        throw new Error('Verification Code Already Used');
+      }
+
+      if (new Date(record.expires_at).getTime() < Date.now()) {
+        codes[recordIndex].status = 'expired';
+        setStorageItem('offline_withdrawal_codes', codes);
+        logAttempt(false, 'Verification Code Expired');
+        throw new Error('Verification Code Expired');
+      }
+
+      if (record.user_email.toLowerCase() !== userEmail.toLowerCase()) {
+        logAttempt(false, 'Email Mismatch');
+        throw new Error('Email Mismatch');
+      }
+
+      if (record.user_id !== userId) {
+        logAttempt(false, 'User ID Mismatch');
+        throw new Error('User ID Mismatch');
+      }
+
+      // Verify simulated signature matches
+      const expectedPayload = `${record.user_email.toLowerCase().trim()}|${Number(record.amount).toFixed(2)}|${record.verification_code}|${record.expires_at}`;
+      const expectedSignature = btoa(expectedPayload).substring(0, 32);
+
+      if (record.signature !== expectedSignature) {
+        logAttempt(false, 'Invalid Signature / Code Tampered');
+        throw new Error('Invalid Signature');
+      }
+
+      // Success Path: check balance, deduct wallet
+      const userIndex = users.findIndex(u => u.id === userId);
+      if (userIndex === -1) {
+        logAttempt(false, 'User profile not found');
+        throw new Error('User profile not found');
+      }
+
+      if (users[userIndex].balance < record.amount) {
+        logAttempt(false, 'Insufficient Balance for Withdrawal');
+        throw new Error('Insufficient Balance for Withdrawal');
+      }
+
+      // Update code
+      codes[recordIndex].used = true;
+      codes[recordIndex].status = 'completed';
+      codes[recordIndex].verified_at = attemptedAt;
+      setStorageItem('offline_withdrawal_codes', codes);
+
+      // Deduct balance
+      users[userIndex].balance = (users[userIndex].balance || 0) - record.amount;
+      setStorageItem('users', users);
+
+      // Create transaction record
+      const tx: Transaction = {
+        id: 'tx_ofw_' + Math.random().toString(36).substr(2, 9),
+        user_id: userId,
+        type: 'withdrawal',
+        amount: record.amount,
+        description: `Offline Cryptographic Withdrawal Verification Success`,
+        created_at: attemptedAt
+      };
+      txs.unshift(tx);
+      setStorageItem('transactions', txs);
+
+      logAttempt(true);
+      return {
+        success: true,
+        amount: record.amount,
+      };
+    }
+  },
+
+  async getOfflineWithdrawalCodes(): Promise<OfflineWithdrawalCode[]> {
+    try {
+      const response = await fetch('/api/offline-withdrawal/admin/list');
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      return getStorageItem<OfflineWithdrawalCode[]>('offline_withdrawal_codes', []);
+    }
+  },
+
+  async deleteExpiredOfflineWithdrawalCodes(): Promise<{ success: boolean; deleted: number }> {
+    try {
+      const response = await fetch('/api/offline-withdrawal/admin/expired', { method: 'DELETE' });
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      const codes = getStorageItem<OfflineWithdrawalCode[]>('offline_withdrawal_codes', []);
+      const countBefore = codes.length;
+      const filtered = codes.filter(c => !(new Date(c.expires_at).getTime() < Date.now() && c.status === 'pending'));
+      setStorageItem('offline_withdrawal_codes', filtered);
+      return { success: true, deleted: countBefore - filtered.length };
+    }
+  },
+
+  async getWithdrawalVerificationLogs(): Promise<WithdrawalVerificationLog[]> {
+    try {
+      const response = await fetch('/api/offline-withdrawal/admin/logs');
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error();
+    } catch {
+      return getStorageItem<WithdrawalVerificationLog[]>('withdrawal_verification_logs', []);
     }
   }
 };

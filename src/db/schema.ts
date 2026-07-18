@@ -131,3 +131,40 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// 9. Offline Payment Codes Table
+export const offlinePaymentCodes = pgTable('offline_payment_codes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  userEmail: text('user_email').notNull(),
+  amount: doublePrecision('amount').notNull(),
+  txid: text('txid').notNull(),
+  verificationCode: text('verification_code').notNull(),
+  signature: text('signature').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'completed' | 'expired'
+  used: boolean('used').default(false).notNull(),
+  verifiedAt: timestamp('verified_at'),
+  adminId: text('admin_id'),
+});
+
+// 10. Code Verification Logs Table
+export const codeVerificationLogs = pgTable('code_verification_logs', {
+  id: text('id').primaryKey(),
+  verificationCode: text('verification_code').notNull(),
+  attemptedBy: text('attempted_by').notNull(),
+  userEmail: text('user_email').notNull(),
+  success: boolean('success').notNull(),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Offline Payment Codes Relationships
+export const offlinePaymentCodesRelations = relations(offlinePaymentCodes, ({ one }) => ({
+  user: one(users, {
+    fields: [offlinePaymentCodes.userId],
+    references: [users.id],
+  }),
+}));
+

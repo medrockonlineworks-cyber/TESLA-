@@ -22,7 +22,7 @@ export default function BottomNav({ activeTab, setActiveTab, isAdmin, onOpenAdmi
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-slate-100 backdrop-blur-md pb-safe-bottom">
+    <nav className="absolute bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-slate-100 backdrop-blur-md pb-safe-bottom">
       <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between relative">
         {tabs.map((tab) => {
           const Icon = tab.icon;

@@ -75,3 +75,55 @@ export interface Announcement {
   message: string;
   created_at: string;
 }
+
+export interface OfflinePaymentCode {
+  id: string;
+  user_id: string;
+  user_email: string;
+  amount: number;
+  txid: string;
+  verification_code: string;
+  signature: string;
+  created_at: string;
+  expires_at: string;
+  status: 'pending' | 'completed' | 'expired';
+  used: boolean;
+  verified_at?: string;
+  admin_id?: string;
+}
+
+export interface CodeVerificationLog {
+  id: string;
+  verification_code: string;
+  attempted_by: string;
+  user_email: string;
+  success: boolean;
+  error_message?: string;
+  created_at: string;
+}
+
+export interface OfflineWithdrawalCode {
+  id: string;
+  user_id: string;
+  user_email: string;
+  amount: number;
+  verification_code: string;
+  signature: string;
+  created_at: string;
+  expires_at: string;
+  status: 'pending' | 'completed' | 'expired';
+  used: boolean;
+  verified_at?: string;
+  admin_id?: string;
+}
+
+export interface WithdrawalVerificationLog {
+  id: string;
+  verification_code: string;
+  attempted_by: string;
+  user_email: string;
+  success: boolean;
+  error_message?: string;
+  created_at: string;
+}
+
