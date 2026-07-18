@@ -15,7 +15,7 @@ export default function AppDownloadModal({
   showToast,
   lang,
 }: AppDownloadModalProps) {
-  const [downloadStep, setDownloadStep] = useState<'confirm' | 'downloading' | 'success'>('confirm');
+  const [downloadStep, setDownloadStep] = useState<'confirm' | 'downloading' | 'success'>('downloading');
   const [progress, setProgress] = useState(0);
   const [clickedApp, setClickedApp] = useState(false);
 
