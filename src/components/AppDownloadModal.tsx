@@ -164,6 +164,18 @@ export default function AppDownloadModal({
               </p>
             </div>
 
+            {/* Simulated/Sandbox Notice Banner to avoid 'Problem parsing the package' confusion */}
+            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-200/90 rounded-2xl p-3.5 text-left text-[11.5px] leading-relaxed font-sans space-y-1 max-w-xs mx-auto">
+              <div className="flex items-center gap-1.5 font-bold uppercase text-[10px] tracking-widest text-amber-400">
+                <span>⚠️ SYSTEM SIMULATION NOTICE</span>
+              </div>
+              <p>
+                {lang === 'en'
+                  ? 'Please note: This web preview downloads a simulated demo APK package. Since compiling binary Android apps dynamically is restricted inside web preview sandboxes, this package cannot be executed directly on real devices (causing the "problem parsing the package" error).'
+                  : 'እባክዎ ልብ ይበሉ፡ ይህ የድር መተግበሪያ የማስመሰያ ማሳያ (demo) APK ፋይልን ያወርዳል። እውነተኛ የ Android መተግበሪያዎችን በድር ቅድመ-ዕይታ ላይ በቀጥታ መገንባት ስለማይቻል ይህ ፋይል በእውነተኛ ስልኮች ላይ ሊጫን አይችልም።'}
+              </p>
+            </div>
+
             {/* Spec grid */}
             <div className="grid grid-cols-3 gap-2 bg-slate-900/40 border border-slate-900/80 rounded-2xl p-3.5 text-[10px] font-mono text-slate-400">
               <div className="text-center border-r border-slate-900/60">
