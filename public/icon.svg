@@ -20,8 +20,8 @@
   <!-- Subtle inner border -->
   <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#gold)" stroke-width="4" stroke-opacity="0.2" />
 
-  <!-- Tesla style logo group -->
-  <g transform="translate(146, 110)" filter="url(#glow)">
+  <!-- Tesla style logo group perfectly centered -->
+  <g transform="translate(146, 144)" filter="url(#glow)">
     <!-- Tesla "T" shape inside a golden crest -->
     <path d="M 110,32 C 110,32 108,12 110,4 C 110,4 160,0 220,32 C 220,32 110,32 110,32 Z" fill="url(#gold)" />
     <!-- T top bar -->
@@ -33,6 +33,4 @@
     <path d="M 180,82 C 160,110 140,145 130,180 C 148,160 168,130 190,102 C 194,98 192,90 188,86 C 185,84 182,81 180,82 Z" fill="url(#gold)" opacity="0.8" />
   </g>
   
-  <!-- Gold Typography -->
-  <text x="256" y="445" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="900" font-size="34" fill="url(#gold)" text-anchor="middle" letter-spacing="4">TESLA INVEST</text>
 </svg>

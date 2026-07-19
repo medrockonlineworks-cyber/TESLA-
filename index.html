@@ -12,7 +12,50 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="background-color: #020711; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; margin: 0; padding: 24px; box-sizing: border-box; overflow: hidden; position: relative;">
+        <!-- Glowing Ambient light -->
+        <div style="position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 350px; height: 350px; background-color: rgba(250, 188, 5, 0.08); border-radius: 50%; filter: blur(90px); pointer-events: none;"></div>
+        
+        <!-- Tesla Gold Logo Group -->
+        <div style="display: flex; flex-direction: column; align-items: center; z-index: 10; transform: translateY(-20px); animation: pulseLogo 2s infinite ease-in-out;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="120" height="120" style="filter: drop-shadow(0 0 16px rgba(251, 188, 5, 0.45));">
+            <!-- Tesla Styled T logo -->
+            <path d="M 110,32 C 110,32 108,12 110,4 C 110,4 160,0 220,32 C 220,32 110,32 110,32 Z" fill="#fbbc05" transform="translate(146, 110)" />
+            <path d="M 30,50 C 70,36 150,36 190,50 C 200,53 210,50 210,50 C 210,50 195,44 185,42 C 145,32 75,32 35,42 C 25,44 10,50 10,50 C 10,50 20,53 30,50 Z" fill="#fbbc05" transform="translate(146, 110)" />
+            <path d="M 94,62 C 94,62 105,58 110,58 C 115,58 126,62 126,62 C 126,62 126,170 126,206 C 126,220 115,225 110,225 C 105,225 94,220 94,206 C 94,170 94,62 94,62 Z" fill="#fbbc05" transform="translate(146, 110)" />
+          </svg>
+          <h1 style="margin: 24px 0 8px 0; font-size: 28px; font-weight: 900; letter-spacing: 8px; color: #ffffff; text-shadow: 0 4px 16px rgba(251, 188, 5, 0.3); font-family: 'Space Grotesk', -apple-system, sans-serif; text-align: center;">TESLA</h1>
+          <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 4px; color: #64748b; text-transform: uppercase;">Investment Portal</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div style="z-index: 10; margin-top: 32px; display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 36px; height: 36px; border: 3px solid rgba(251, 188, 5, 0.15); border-top: 3px solid #fbbc05; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+          <p style="margin: 20px 0 0 0; font-size: 11px; font-family: monospace; letter-spacing: 3px; color: #fbbc05; text-transform: uppercase; animation: fadeText 1.5s infinite ease-in-out;">Initializing Secure Core...</p>
+        </div>
+      </div>
+      
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulseLogo {
+          0%, 100% { transform: translateY(-20px) scale(1); }
+          50% { transform: translateY(-20px) scale(1.04); opacity: 0.95; }
+        }
+        @keyframes fadeText {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 1; }
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #020711;
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {

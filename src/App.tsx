@@ -225,12 +225,36 @@ export default function App() {
     document.body.removeChild(link);
   };
 
-  // Show Loading Spinner on boot
+  // Show Loading Spinner on boot (Seamlessly matches the HTML Splash screen)
   if (!appReady) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white text-slate-900 font-sans">
-        <div className="w-12 h-12 border-4 border-amber-300/30 border-t-[#fbbc05] rounded-full animate-spin mb-4" />
-        <h3 className="text-sm font-mono uppercase tracking-widest text-slate-500">Initializing Tesla Secure Core...</h3>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#020711] text-white font-sans relative overflow-hidden">
+        {/* Absolute Tesla Royal Gold Laser Glow */}
+        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-[#fbbc05]/8 rounded-full blur-[90px] pointer-events-none" />
+        
+        {/* Tesla Gold Logo Group */}
+        <div className="flex flex-col items-center z-10 -translate-y-5 animate-pulse">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-28 h-28 drop-shadow-[0_0_16px_rgba(251,188,5,0.45)]">
+            {/* Tesla Styled T logo */}
+            <path d="M 110,32 C 110,32 108,12 110,4 C 110,4 160,0 220,32 C 220,32 110,32 110,32 Z" fill="#fbbc05" transform="translate(146, 110)" />
+            <path d="M 30,50 C 70,36 150,36 190,50 C 200,53 210,50 210,50 C 210,50 195,44 185,42 C 145,32 75,32 35,42 C 25,44 10,50 10,50 C 10,50 20,53 30,50 Z" fill="#fbbc05" transform="translate(146, 110)" />
+            <path d="M 94,62 C 94,62 105,58 110,58 C 115,58 126,62 126,62 C 126,62 126,170 126,206 C 126,220 115,225 110,225 C 105,225 94,220 94,206 C 94,170 94,62 94,62 Z" fill="#fbbc05" transform="translate(146, 110)" />
+          </svg>
+          <h1 className="mt-6 mb-2 text-2xl font-black tracking-[0.25em] text-white text-center drop-shadow-[0_4px_12px_rgba(251,188,5,0.25)] font-sans">
+            TESLA
+          </h1>
+          <p className="text-[10px] font-extrabold tracking-[0.3em] text-slate-500 uppercase">
+            Investment Portal
+          </p>
+        </div>
+
+        {/* Progress Tracker Loading Spinner */}
+        <div className="z-10 mt-8 flex flex-col items-center">
+          <div className="w-9 h-9 border-3 border-amber-300/10 border-t-[#fbbc05] rounded-full animate-spin mb-4" />
+          <p className="text-[10px] font-mono tracking-widest text-[#fbbc05]/90 uppercase">
+            Connecting Secure Wallet...
+          </p>
+        </div>
       </div>
     );
   }

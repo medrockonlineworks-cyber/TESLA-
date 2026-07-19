@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#0a1d37" />
+      <stop offset="100%" stop-color="#020711" />
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe066" />
+      <stop offset="50%" stop-color="#fbbc05" />
+      <stop offset="100%" stop-color="#d19a04" />
+    </linearGradient>
+    <linearGradient id="chartGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fbbc05" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#fbbc05" stop-opacity="0" />
+    </linearGradient>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#fbbc05" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Solid App Background -->
+  <rect width="1080" height="1920" fill="url(#bg)" />
+
+  <!-- Mock Status Bar -->
+  <rect width="1080" height="80" fill="#020711" opacity="0.4" />
+  <text x="60" y="50" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="28" fill="#ffffff" opacity="0.8">9:41</text>
+  <g transform="translate(900, 30)">
+    <rect x="0" y="4" width="40" height="20" rx="4" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8" />
+    <rect x="4" y="8" width="24" height="12" rx="2" fill="#ffffff" opacity="0.8" />
+    <rect x="42" y="10" width="4" height="8" fill="#ffffff" opacity="0.8" />
+  </g>
+
+  <!-- Brand Header -->
+  <g transform="translate(0, 180)">
+    <!-- Tesla Styled T logo -->
+    <path d="M 540,0 L 510,-24 C 525,-26 555,-26 570,-24 Z" fill="url(#gold)" />
+    <path d="M 500,-16 C 520,-20 560,-20 580,-16 L 580,-10 C 560,-12 520,-12 500,-10 Z" fill="url(#gold)" />
+    <path d="M 530,-4 L 550,-4 L 550,40 C 550,44 546,48 540,48 C 534,48 530,44 530,40 Z" fill="url(#gold)" />
+    
+    <text x="540" y="110" font-family="'Space Grotesk', sans-serif" font-weight="900" font-size="44" fill="url(#gold)" text-anchor="middle" letter-spacing="8" filter="url(#glow)">TESLA INVESTMENT</text>
+    <text x="540" y="150" font-family="'Inter', sans-serif" font-weight="600" font-size="18" fill="#64748b" text-anchor="middle" letter-spacing="4">SECURE QUANTUM PORTAL</text>
+  </g>
+
+  <!-- Wallet Dashboard Card -->
+  <g transform="translate(60, 420)">
+    <rect width="960" height="340" rx="36" fill="#030a16" stroke="#0d2242" stroke-width="2" />
+    <text x="60" y="70" font-family="'Inter', sans-serif" font-weight="500" font-size="24" fill="#64748b" letter-spacing="1">WALLET ACCOUNT BALANCE</text>
+    <text x="60" y="160" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="76" fill="#ffffff">$12,450.50 <tspan font-size="36" fill="#64748b">USD</tspan></text>
+    
+    <line x1="60" y1="210" x2="900" y2="210" stroke="#0d2242" stroke-width="2" />
+    
+    <!-- Secondary balance elements -->
+    <text x="60" y="270" font-family="'Inter', sans-serif" font-weight="500" font-size="22" fill="#64748b">EQUIVALENT CODES</text>
+    <text x="60" y="305" font-family="'JetBrains Mono', sans-serif" font-weight="700" font-size="26" fill="#fbbc05">1,494,060 ETB</text>
+
+    <text x="520" y="270" font-family="'Inter', sans-serif" font-weight="500" font-size="22" fill="#64748b">ACTIVE DEPOSITS</text>
+    <text x="520" y="305" font-family="'JetBrains Mono', sans-serif" font-weight="700" font-size="26" fill="#10b981">+4,500.00 USD</text>
+  </g>
+
+  <!-- Interactive Graphic Gold Chart -->
+  <g transform="translate(60, 810)">
+    <rect width="960" height="380" rx="36" fill="#030a16" stroke="#0d2242" stroke-width="2" />
+    <text x="60" y="70" font-family="'Inter', sans-serif" font-weight="600" font-size="24" fill="#ffffff" letter-spacing="1">PERFORMANCE LOGS</text>
+    <text x="810" y="70" font-family="'JetBrains Mono', sans-serif" font-weight="bold" font-size="22" fill="#10b981">+32.4% APY</text>
+    
+    <!-- Gold Line Path with glow -->
+    <path d="M 80,310 Q 200,260 320,290 T 560,180 T 800,160 T 880,110" fill="none" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" filter="url(#glow)" />
+    <!-- Gradient fill under chart line -->
+    <path d="M 80,310 Q 200,260 320,290 T 560,180 T 800,160 T 880,110 L 880,330 L 80,330 Z" fill="url(#chartGlow)" />
+    
+    <!-- X/Y Axes Grid lines -->
+    <line x1="80" y1="330" x2="880" y2="330" stroke="#0d2242" stroke-width="2" />
+    <circle cx="880" cy="110" r="10" fill="#fbbc05" />
+    <circle cx="880" cy="110" r="22" fill="none" stroke="#fbbc05" stroke-width="2" opacity="0.5" />
+  </g>
+
+  <!-- Investment Packages Panel Title -->
+  <text x="60" y="1270" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="34" fill="#ffffff" letter-spacing="1">PREMIUM INVESTMENT PACKAGES</text>
+
+  <!-- Investment Card Cybertruck -->
+  <g transform="translate(60, 1320)">
+    <rect width="960" height="230" rx="36" fill="#030a16" stroke="#fbbc05" stroke-width="2" stroke-opacity="0.4" />
+    
+    <rect x="40" y="40" width="150" height="150" rx="24" fill="#0d2242" opacity="0.6" />
+    <!-- Cybertruck geometric icon placeholder representation -->
+    <path d="M 70,140 L 90,95 L 140,95 L 160,140 Z" fill="none" stroke="#fbbc05" stroke-width="4" />
+    <path d="M 55,140 L 175,140" stroke="#fbbc05" stroke-width="4" />
+    <circle cx="90" cy="140" r="12" fill="#020711" stroke="#fbbc05" stroke-width="3" />
+    <circle cx="140" cy="140" r="12" fill="#020711" stroke="#fbbc05" stroke-width="3" />
+
+    <text x="220" y="75" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="32" fill="#ffffff">Model Cybertruck Core</text>
+    <text x="220" y="125" font-family="'Inter', sans-serif" font-weight="500" font-size="22" fill="#64748b">CAPITAL: <tspan fill="#ffffff" font-weight="bold">500 USD</tspan> | RETURN: <tspan fill="#10b981" font-weight="bold">675 USD</tspan></text>
+    <text x="220" y="170" font-family="'Inter', sans-serif" font-weight="500" font-size="22" fill="#64748b">HOURLY DISTRIBUTION • <tspan fill="#fbbc05" font-weight="bold">24 Hrs</tspan></text>
+
+    <!-- Invest Button mockup -->
+    <rect x="700" y="80" width="220" height="70" rx="18" fill="url(#gold)" />
+    <text x="810" y="122" font-family="'Space Grotesk', sans-serif" font-weight="900" font-size="22" fill="#020711" text-anchor="middle">INVEST NOW</text>
+  </g>
+
+  <!-- Bottom App Navigation Mockup -->
+  <g transform="translate(0, 1780)">
+    <rect width="1080" height="140" fill="#030a16" stroke="#0d2242" stroke-width="1" />
+    <g transform="translate(135, 50)">
+      <circle cx="0" cy="-10" r="12" fill="url(#gold)" />
+      <text x="0" y="30" font-family="'Inter', sans-serif" font-weight="bold" font-size="18" fill="#fbbc05" text-anchor="middle">Home</text>
+    </g>
+    <g transform="translate(405, 50)">
+      <circle cx="0" cy="-10" r="12" fill="#64748b" />
+      <text x="0" y="30" font-family="'Inter', sans-serif" font-weight="bold" font-size="18" fill="#64748b" text-anchor="middle">Invest</text>
+    </g>
+    <g transform="translate(675, 50)">
+      <circle cx="0" cy="-10" r="12" fill="#64748b" />
+      <text x="0" y="30" font-family="'Inter', sans-serif" font-weight="bold" font-size="18" fill="#64748b" text-anchor="middle">Wallet</text>
+    </g>
+    <g transform="translate(945, 50)">
+      <circle cx="0" cy="-10" r="12" fill="#64748b" />
+      <text x="0" y="30" font-family="'Inter', sans-serif" font-weight="bold" font-size="18" fill="#64748b" text-anchor="middle">Profile</text>
+    </g>
+  </g>
+</svg>
