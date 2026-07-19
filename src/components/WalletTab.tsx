@@ -542,14 +542,14 @@ export default function WalletTab({
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentName}</span>
                     <span className="text-slate-800 font-extrabold">
-                      {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Tesla Awash Agent')}
+                      {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Awash Bank Agent (leykun)')}
                     </span>
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
                     <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentAccount}</span>
                     <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
                       <span className="text-emerald-700 font-mono font-extrabold">
-                        {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '0132049581900')}
+                        {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '013201773574600')}
                       </span>
                       <button
                         type="button"

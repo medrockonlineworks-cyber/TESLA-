@@ -81,18 +81,11 @@ const DEFAULT_AGENTS: AgentAccount[] = [
     created_at: new Date(Date.now() - 3600000 * 48).toISOString()
   },
   {
-    id: 'agent_awash1',
-    agent_name: 'Awash Bank Agent (Kassa Abebe)',
-    agent_number: '0132049581900',
+    id: 'agent_awash_leykun',
+    agent_name: 'Awash Bank Agent (leykun)',
+    agent_number: '013201773574600',
     is_active: true,
-    created_at: new Date(Date.now() - 3600000 * 12).toISOString()
-  },
-  {
-    id: 'agent_awash2',
-    agent_name: 'Awash Bank Agent (Abebech B.)',
-    agent_number: '0149023485700',
-    is_active: true,
-    created_at: new Date(Date.now() - 3600000 * 6).toISOString()
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
   }
 ];
 
@@ -128,9 +121,9 @@ const initLocalDb = () => {
   const transactions = getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
 
-  // Force reset agents to include the new Telebirr agent immediately
+  // Force reset agents to exclude the old Awash agents and only keep Telebirr & the new Awash agent immediately
   const storedAgents = localStorage.getItem('tesla_inv_agent_accounts');
-  if (!storedAgents || !storedAgents.includes('0926193920')) {
+  if (!storedAgents || !storedAgents.includes('013201773574600') || storedAgents.includes('0132049581900') || storedAgents.includes('0149023485700')) {
     localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
   } else {
     getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
@@ -1286,6 +1279,10 @@ export const dbService = {
       }
       return data as AgentAccount[];
     } else {
+      const stored = localStorage.getItem('tesla_inv_agent_accounts');
+      if (!stored || !stored.includes('013201773574600') || stored.includes('0132049581900') || stored.includes('0149023485700')) {
+        localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
+      }
       return getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
     }
   },
