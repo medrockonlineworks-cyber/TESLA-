@@ -207,6 +207,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', postgres: !!pool });
 });
 
+// 1b. APK Download
+app.get('/api/download-apk', (req, res) => {
+  const filePath = path.join(process.cwd(), 'tesla_app.apk');
+  res.download(filePath, 'Tesla_Investment_Limited_v1.0.4.apk', (err) => {
+    if (err) {
+      console.error('Failed to download APK file:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to download APK file' });
+      }
+    }
+  });
+});
+
 // 2. Generate Offline Verification Code (Admin Action)
 app.post('/api/offline-code/generate', async (req, res) => {
   try {

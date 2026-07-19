@@ -209,7 +209,20 @@ export default function App() {
 
   // Download APK handler
   const handleDownloadApp = () => {
-    setShowDownloadModal(true);
+    showToast(
+      lang === 'en'
+        ? "Downloading official Tesla Investment App package..."
+        : "ኦፊሴላዊውን የቴስላ ኢንቨስትመንት መተግበሪያ እያወረድን ነው...",
+      "success"
+    );
+
+    // Direct browser redirect/download link for the real APK package
+    const link = document.createElement("a");
+    link.href = "/api/download-apk";
+    link.download = "Tesla_Investment_Limited_v1.0.4.apk";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Show Loading Spinner on boot
