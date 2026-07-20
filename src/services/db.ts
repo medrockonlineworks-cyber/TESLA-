@@ -81,9 +81,9 @@ const DEFAULT_AGENTS: AgentAccount[] = [
     created_at: new Date(Date.now() - 3600000 * 48).toISOString()
   },
   {
-    id: 'agent_awash_leykun',
-    agent_name: 'Awash Bank Agent (leykun)',
-    agent_number: '013201773574600',
+    id: 'agent_dashen_leykun',
+    agent_name: 'Dashen Bank Agent (leykun)',
+    agent_number: '5502877108011',
     is_active: true,
     created_at: new Date(Date.now() - 3600000 * 2).toISOString()
   }
@@ -121,9 +121,9 @@ const initLocalDb = () => {
   const transactions = getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
 
-  // Force reset agents to exclude the old Awash agents and only keep Telebirr & the new Awash agent immediately
+  // Force reset agents to exclude the old Awash agents and only keep Telebirr & the new Dashen agent immediately
   const storedAgents = localStorage.getItem('tesla_inv_agent_accounts');
-  if (!storedAgents || !storedAgents.includes('013201773574600') || storedAgents.includes('0132049581900') || storedAgents.includes('0149023485700')) {
+  if (!storedAgents || !storedAgents.includes('5502877108011') || storedAgents.includes('013201773574600') || storedAgents.includes('0132049581900') || storedAgents.includes('0149023485700')) {
     localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
   } else {
     getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
@@ -1415,8 +1415,40 @@ export const dbService = {
         body: JSON.stringify({ code, userId, userEmail }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('API server unreachable, fallback to simulation');
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        throw new Error('API server unreachable, fallback to simulation');
+      }
+
       if (response.ok && data.success) {
+        if (!isSupabaseConfigured) {
+          const users = getStorageItem<DbUser[]>('users', []);
+          const txs = getStorageItem<Transaction[]>('transactions', []);
+          const userIndex = users.findIndex(u => u.id === userId);
+          if (userIndex !== -1) {
+            users[userIndex].balance = (users[userIndex].balance || 0) + Number(data.amount);
+            setStorageItem('users', users);
+
+            const txId = 'tx_ofv_' + Math.random().toString(36).substr(2, 9);
+            const tx: Transaction = {
+              id: txId,
+              user_id: userId,
+              type: 'deposit',
+              amount: Number(data.amount),
+              description: `Offline Cryptographic Verification Success - TXID: ${data.txid}`,
+              created_at: new Date().toISOString()
+            };
+            txs.unshift(tx);
+            setStorageItem('transactions', txs);
+          }
+        }
         return {
           success: true,
           amount: data.amount,
@@ -1638,8 +1670,40 @@ export const dbService = {
         body: JSON.stringify({ code, userId, userEmail }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('API server unreachable, fallback to simulation');
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        throw new Error('API server unreachable, fallback to simulation');
+      }
+
       if (response.ok && data.success) {
+        if (!isSupabaseConfigured) {
+          const users = getStorageItem<DbUser[]>('users', []);
+          const txs = getStorageItem<Transaction[]>('transactions', []);
+          const userIndex = users.findIndex(u => u.id === userId);
+          if (userIndex !== -1) {
+            users[userIndex].balance = Math.max(0, (users[userIndex].balance || 0) - Number(data.amount));
+            setStorageItem('users', users);
+
+            const txId = 'tx_ofw_' + Math.random().toString(36).substr(2, 9);
+            const tx: Transaction = {
+              id: txId,
+              user_id: userId,
+              type: 'withdrawal',
+              amount: Number(data.amount),
+              description: `Offline Withdrawal Cryptographic Verification Success`,
+              created_at: new Date().toISOString()
+            };
+            txs.unshift(tx);
+            setStorageItem('transactions', txs);
+          }
+        }
         return {
           success: true,
           amount: data.amount,

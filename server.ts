@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import * as dotenv from 'dotenv';
 import pg from 'pg';
@@ -169,10 +170,64 @@ interface WithdrawalVerificationLogMemory {
   created_at: string;
 }
 
+const OFFLINE_CODES_FILE = path.join(process.cwd(), 'offline_codes.json');
+const VERIFICATION_LOGS_FILE = path.join(process.cwd(), 'verification_logs.json');
+const OFFLINE_WITHDRAWALS_FILE = path.join(process.cwd(), 'offline_withdrawals.json');
+const WITHDRAWAL_LOGS_FILE = path.join(process.cwd(), 'withdrawal_logs.json');
+
 let offlineCodesMemory: OfflineCodeMemory[] = [];
 let verificationLogsMemory: VerificationLogMemory[] = [];
 let offlineWithdrawalCodesMemory: OfflineWithdrawalCodeMemory[] = [];
 let withdrawalVerificationLogsMemory: WithdrawalVerificationLogMemory[] = [];
+
+try {
+  if (fs.existsSync(OFFLINE_CODES_FILE)) {
+    offlineCodesMemory = JSON.parse(fs.readFileSync(OFFLINE_CODES_FILE, 'utf-8'));
+  }
+  if (fs.existsSync(VERIFICATION_LOGS_FILE)) {
+    verificationLogsMemory = JSON.parse(fs.readFileSync(VERIFICATION_LOGS_FILE, 'utf-8'));
+  }
+  if (fs.existsSync(OFFLINE_WITHDRAWALS_FILE)) {
+    offlineWithdrawalCodesMemory = JSON.parse(fs.readFileSync(OFFLINE_WITHDRAWALS_FILE, 'utf-8'));
+  }
+  if (fs.existsSync(WITHDRAWAL_LOGS_FILE)) {
+    withdrawalVerificationLogsMemory = JSON.parse(fs.readFileSync(WITHDRAWAL_LOGS_FILE, 'utf-8'));
+  }
+} catch (e) {
+  console.error('Failed to load offline memory databases from disk:', e);
+}
+
+function saveOfflineCodes() {
+  try {
+    fs.writeFileSync(OFFLINE_CODES_FILE, JSON.stringify(offlineCodesMemory, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to save offline codes:', e);
+  }
+}
+
+function saveVerificationLogs() {
+  try {
+    fs.writeFileSync(VERIFICATION_LOGS_FILE, JSON.stringify(verificationLogsMemory, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to save verification logs:', e);
+  }
+}
+
+function saveOfflineWithdrawals() {
+  try {
+    fs.writeFileSync(OFFLINE_WITHDRAWALS_FILE, JSON.stringify(offlineWithdrawalCodesMemory, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to save offline withdrawals:', e);
+  }
+}
+
+function saveWithdrawalLogs() {
+  try {
+    fs.writeFileSync(WITHDRAWAL_LOGS_FILE, JSON.stringify(withdrawalVerificationLogsMemory, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to save withdrawal logs:', e);
+  }
+}
 
 // Helper to generate a highly distinct 8-character code
 function generateVerificationCode(): string {
@@ -273,6 +328,7 @@ app.post('/api/offline-code/generate', async (req, res) => {
       );
     } else {
       offlineCodesMemory.push(newCode);
+      saveOfflineCodes();
     }
 
     res.json({ success: true, code: newCode });
@@ -311,6 +367,7 @@ app.post('/api/offline-code/verify', async (req, res) => {
       }
     } else {
       verificationLogsMemory.unshift(newLog);
+      saveVerificationLogs();
     }
   };
 
@@ -368,6 +425,7 @@ app.post('/api/offline-code/verify', async (req, res) => {
         await pool.query("UPDATE offline_payment_codes SET status = 'expired' WHERE id = $1", [record.id]);
       } else {
         record.status = 'expired';
+        saveOfflineCodes();
       }
       await logAttempt(false, 'Verification Code Expired');
       return res.status(400).json({ error: 'Verification Code Expired' });
@@ -453,6 +511,7 @@ app.post('/api/offline-code/verify', async (req, res) => {
       record.used = true;
       record.status = 'completed';
       record.verified_at = verifiedAt;
+      saveOfflineCodes();
     }
 
     await logAttempt(true);
@@ -492,6 +551,7 @@ app.delete('/api/offline-code/admin/expired', async (req, res) => {
     } else {
       const countBefore = offlineCodesMemory.length;
       offlineCodesMemory = offlineCodesMemory.filter(c => !(new Date(c.expires_at).getTime() < Date.now() && c.status === 'pending'));
+      saveOfflineCodes();
       res.json({ success: true, deleted: countBefore - offlineCodesMemory.length });
     }
   } catch (err) {
@@ -568,6 +628,7 @@ app.post('/api/offline-withdrawal/generate', async (req, res) => {
       );
     } else {
       offlineWithdrawalCodesMemory.push(newCode);
+      saveOfflineWithdrawals();
     }
 
     res.json({ success: true, code: newCode });
@@ -606,6 +667,7 @@ app.post('/api/offline-withdrawal/verify', async (req, res) => {
       }
     } else {
       withdrawalVerificationLogsMemory.unshift(newLog);
+      saveWithdrawalLogs();
     }
   };
 
@@ -662,6 +724,7 @@ app.post('/api/offline-withdrawal/verify', async (req, res) => {
         await pool.query("UPDATE offline_withdrawal_codes SET status = 'expired' WHERE id = $1", [record.id]);
       } else {
         record.status = 'expired';
+        saveOfflineWithdrawals();
       }
       await logAttempt(false, 'Verification Code Expired');
       return res.status(400).json({ error: 'Verification Code Expired' });
@@ -756,6 +819,7 @@ app.post('/api/offline-withdrawal/verify', async (req, res) => {
       record.used = true;
       record.status = 'completed';
       record.verified_at = verifiedAt;
+      saveOfflineWithdrawals();
     }
 
     await logAttempt(true);
@@ -794,6 +858,7 @@ app.delete('/api/offline-withdrawal/admin/expired', async (req, res) => {
     } else {
       const countBefore = offlineWithdrawalCodesMemory.length;
       offlineWithdrawalCodesMemory = offlineWithdrawalCodesMemory.filter(c => !(new Date(c.expires_at).getTime() < Date.now() && c.status === 'pending'));
+      saveOfflineWithdrawals();
       res.json({ success: true, deleted: countBefore - offlineWithdrawalCodesMemory.length });
     }
   } catch (err) {

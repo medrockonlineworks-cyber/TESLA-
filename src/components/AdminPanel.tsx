@@ -168,7 +168,7 @@ export default function AdminPanel({
       authorizedAgentAccounts: "Authorized Agent Accounts",
       addAgentBtn: "Add Agent",
       cancelBtn: "Cancel",
-      proTipAgent: "Pro Tip: Include the word 'Awash' in the Agent Name to register them as an Awash Bank Agent. Otherwise, they will be classified as a Telebirr Agent.",
+      proTipAgent: "Pro Tip: Include the word 'Dashen' or 'Awash' in the Agent Name to register them as a Dashen Bank Agent. Otherwise, they will be classified as a Telebirr Agent.",
       agentNameLabel: "Agent/Beneficiary Name",
       agentNumberLabel: "Agent Account/Number",
       createAgentBtn: "Create Agent Account",
@@ -236,7 +236,7 @@ export default function AdminPanel({
       authorizedAgentAccounts: "የተፈቀዱ የወኪል አካውንቶች",
       addAgentBtn: "ወኪል ጨምር",
       cancelBtn: "ሰርዝ",
-      proTipAgent: "ጠቃሚ ምክር፡ እንደ አዋሽ ባንክ ወኪል ለመመዝገብ በወኪል ስሙ ውስጥ 'Awash' የሚለውን ቃል ያካትቱ። አለበለዚያ እንደ ቴሌብር ወኪል ይመደባሉ።",
+      proTipAgent: "ጠቃሚ ምክር፡ እንደ ዳሽን ባንክ ወኪል ለመመዝገብ በወኪል ስሙ ውስጥ 'Dashen' ወይም 'Awash' የሚለውን ቃል ያካትቱ። አለበለዚያ እንደ ቴሌብር ወኪል ይመደባሉ።",
       agentNameLabel: "የወኪሉ/የተጠቃሚው ሙሉ ስም",
       agentNumberLabel: "የወኪሉ አካውንት ቁጥር",
       createAgentBtn: "አዲስ ወኪል ፍጠር",
@@ -1028,7 +1028,7 @@ export default function AdminPanel({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Awash Agent - Abel Kebede"
+                    placeholder="e.g. Dashen Agent - Abel Kebede"
                     value={newAgentName}
                     onChange={(e) => setNewAgentName(e.target.value)}
                     className="w-full bg-black border border-zinc-800 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none text-xs text-white px-3 py-2 rounded-lg transition-all font-sans"

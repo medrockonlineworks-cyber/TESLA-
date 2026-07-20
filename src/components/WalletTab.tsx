@@ -71,14 +71,14 @@ export default function WalletTab({
       withdraw: "Withdraw",
       ledger: "Ledger",
       guideTitle: "How Agent Recharge Works",
-      guide1: "Choose your preferred agent network: Telebirr Agent or Awash Bank Agent.",
+      guide1: "Choose your preferred agent network: Telebirr Agent or Dashen Bank Agent.",
       guide2: "Transfer money to the authorized agent's number listed below.",
       guide3: "Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).",
       guide4: "Enter your unique transaction reference ID (TxID / FT Code) and upload a screenshot of your successful transaction receipt.",
       guide5: "Submit your deposit ticket. Our system administrators will verify the payment and credit your balance within 10-15 minutes!",
       selectNetwork: "Select Agent Network",
       telebirrAgent: "Telebirr Agent",
-      awashAgent: "Awash Agent",
+      awashAgent: "Dashen Agent",
       authorizedAgent: "Authorized Agent",
       noActiveAgents: "No active agents configured yet.",
       agentName: "Agent Name:",
@@ -119,14 +119,14 @@ export default function WalletTab({
       withdraw: "ገንዘብ አውጣ",
       ledger: "ግብይቶች",
       guideTitle: "የወኪል ተቀማጭ እንዴት ይሰራል?",
-      guide1: "የመረጡትን የወኪል አውታር ይምረጡ: ቴሌብር ወኪል ወይም አዋሽ ባንክ ወኪል::",
+      guide1: "የመረጡትን የወኪል አውታር ይምረጡ: ቴሌብር ወኪል ወይም ዳሽን ባንክ ወኪል::",
       guide2: "ከታች ባለው በተፈቀደው የወኪል ቁጥር ላይ ገንዘቡን ያስተላልፉ::",
       guide3: "ትክክለኛውን የተቀማጭ መጠን በUSD ያስገቡ (በራስ-ሰር ተመጣጣኝ የብር መጠን ያሰላል)::",
       guide4: "የግብይት መለያ ቁጥር (TxID / FT ኮድ) ያስገቡ እና የደረሰኝ ፎቶ ያያይዙ::",
       guide5: "የተቀማጭ ወረቀቱን ያስገቡ:: አስተዳዳሪዎች ክፍያውን አረጋግጠው በ10-15 ደቂቃዎች ውስጥ ወደ ሂሳብዎ ያስገባሉ!",
       selectNetwork: "የወኪል አውታር ይምረጡ",
       telebirrAgent: "ቴሌብር ወኪል",
-      awashAgent: "አዋሽ ባንክ ወኪል",
+      awashAgent: "ዳሽን ባንክ ወኪል",
       authorizedAgent: "የተፈቀደ ወኪል",
       noActiveAgents: "ምንም ገባሪ ወኪል አልተገኘም::",
       agentName: "የወኪል ስም:",
@@ -174,10 +174,12 @@ export default function WalletTab({
   }, []);
 
   const filteredAgents = agents.filter(a => {
+    const nameLower = a.agent_name.toLowerCase();
+    const isDashenOrAwash = nameLower.includes('awash') || nameLower.includes('dashen') || nameLower.includes('dashin') || a.id.includes('awash') || a.id.includes('dashen') || a.id.includes('dashin');
     if (agentType === 'awash') {
-      return a.agent_name.toLowerCase().includes('awash') || a.id.includes('awash');
+      return isDashenOrAwash;
     } else {
-      return !a.agent_name.toLowerCase().includes('awash') && !a.id.includes('awash');
+      return !isDashenOrAwash;
     }
   });
 
@@ -517,7 +519,7 @@ export default function WalletTab({
                 {filteredAgents.length > 0 ? (
                   <div className="space-y-1.5">
                     <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                      {t[lang].authorizedAgent} ({agentType === 'telebirr' ? 'Telebirr' : 'Awash Bank'})
+                      {t[lang].authorizedAgent} ({agentType === 'telebirr' ? 'Telebirr' : 'Dashen Bank'})
                     </label>
                     <select
                       value={selectedAgentId}
@@ -542,14 +544,14 @@ export default function WalletTab({
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentName}</span>
                     <span className="text-slate-800 font-extrabold">
-                      {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Awash Bank Agent (leykun)')}
+                      {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Dashen Bank Agent (leykun)')}
                     </span>
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
                     <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentAccount}</span>
                     <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
                       <span className="text-emerald-700 font-mono font-extrabold">
-                        {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '013201773574600')}
+                        {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '5502877108011')}
                       </span>
                       <button
                         type="button"
