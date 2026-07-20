@@ -121,9 +121,9 @@ const initLocalDb = () => {
   const transactions = getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
 
-  // Force reset agents to exclude the old Awash agents and only keep Telebirr & the new Dashen agent immediately
+  // Force reset agents to ensure both Telebirr and Dashen are present
   const storedAgents = localStorage.getItem('tesla_inv_agent_accounts');
-  if (!storedAgents || !storedAgents.includes('5502877108011') || storedAgents.includes('013201773574600') || storedAgents.includes('0132049581900') || storedAgents.includes('0149023485700')) {
+  if (!storedAgents || !storedAgents.includes('5502877108011') || !storedAgents.includes('0926193920')) {
     localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
   } else {
     getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);

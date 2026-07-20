@@ -43,7 +43,7 @@ export default function WalletTab({
   const [transactionId, setTransactionId] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState('');
   const [recharging, setRecharging] = useState(false);
-  const [agentType, setAgentType] = useState<'telebirr' | 'awash'>('telebirr');
+  const [agentType, setAgentType] = useState<'telebirr' | 'dashen' | 'cbe' | 'awash' | 'abyssinia'>('telebirr');
 
   // Active agents state
   const [agents, setAgents] = useState<AgentAccount[]>([]);
@@ -55,9 +55,11 @@ export default function WalletTab({
   const [cbeHolderName, setCbeHolderName] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
 
-  // Fallback Telebirr Details
+  // Fallback Details
   const TELEBIRR_MERCHANT_NAME = "TESLA INVESTMENT LIMITED (HQ)";
   const TELEBIRR_MERCHANT_NUMBER = "0926193920";
+  const DASHEN_MERCHANT_NAME = "DASHEN BANK AGENT (HQ)";
+  const DASHEN_MERCHANT_NUMBER = "5502877108011";
 
   // Translation dictionary for Wallet Tab
   const t = {
@@ -71,14 +73,18 @@ export default function WalletTab({
       withdraw: "Withdraw",
       ledger: "Ledger",
       guideTitle: "How Agent Recharge Works",
-      guide1: "Choose your preferred agent network: Telebirr Agent or Dashen Bank Agent.",
+      guide1: "Choose your preferred agent network (Telebirr or Dashen Bank).",
       guide2: "Transfer money to the authorized agent's number listed below.",
       guide3: "Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).",
       guide4: "Enter your unique transaction reference ID (TxID / FT Code) and upload a screenshot of your successful transaction receipt.",
       guide5: "Submit your deposit ticket. Our system administrators will verify the payment and credit your balance within 10-15 minutes!",
       selectNetwork: "Select Agent Network",
       telebirrAgent: "Telebirr Agent",
-      awashAgent: "Dashen Agent",
+      dashenAgent: "Dashen Bank",
+      cbeAgent: "CBE Bank",
+      awashAgent: "Awash Bank",
+      abyssiniaAgent: "Abyssinia Bank",
+      cbeUnavailable: "This bank agent network is currently unavailable. Please use Telebirr or Dashen Bank agents.",
       authorizedAgent: "Authorized Agent",
       noActiveAgents: "No active agents configured yet.",
       agentName: "Agent Name:",
@@ -119,14 +125,18 @@ export default function WalletTab({
       withdraw: "ገንዘብ አውጣ",
       ledger: "ግብይቶች",
       guideTitle: "የወኪል ተቀማጭ እንዴት ይሰራል?",
-      guide1: "የመረጡትን የወኪል አውታር ይምረጡ: ቴሌብር ወኪል ወይም ዳሽን ባንክ ወኪል::",
+      guide1: "የመረጡትን የወኪል አውታር ይምረጡ (ቴሌብር ወኪል ወይም ዳሽን ባንክ)::",
       guide2: "ከታች ባለው በተፈቀደው የወኪል ቁጥር ላይ ገንዘቡን ያስተላልፉ::",
       guide3: "ትክክለኛውን የተቀማጭ መጠን በUSD ያስገቡ (በራስ-ሰር ተመጣጣኝ የብር መጠን ያሰላል)::",
       guide4: "የግብይት መለያ ቁጥር (TxID / FT ኮድ) ያስገቡ እና የደረሰኝ ፎቶ ያያይዙ::",
       guide5: "የተቀማጭ ወረቀቱን ያስገቡ:: አስተዳዳሪዎች ክፍያውን አረጋግጠው በ10-15 ደቂቃዎች ውስጥ ወደ ሂሳብዎ ያስገባሉ!",
       selectNetwork: "የወኪል አውታር ይምረጡ",
       telebirrAgent: "ቴሌብር ወኪል",
-      awashAgent: "ዳሽን ባንክ ወኪል",
+      dashenAgent: "ዳሽን ባንክ",
+      cbeAgent: "የኢትዮጵያ ንግድ ባንክ (CBE)",
+      awashAgent: "አዋሽ ባንክ",
+      abyssiniaAgent: "አቢሲኒያ ባንክ",
+      cbeUnavailable: "ይህ የባንክ ወኪል አውታረ መረብ በአሁኑ ጊዜ አልተዘጋጀም:: እባክዎ የቴሌብር ወይም የዳሽን ባንክ ወኪሎችን ይጠቀሙ::",
       authorizedAgent: "የተፈቀደ ወኪል",
       noActiveAgents: "ምንም ገባሪ ወኪል አልተገኘም::",
       agentName: "የወኪል ስም:",
@@ -176,10 +186,12 @@ export default function WalletTab({
   const filteredAgents = agents.filter(a => {
     const nameLower = a.agent_name.toLowerCase();
     const isDashenOrAwash = nameLower.includes('awash') || nameLower.includes('dashen') || nameLower.includes('dashin') || a.id.includes('awash') || a.id.includes('dashen') || a.id.includes('dashin');
-    if (agentType === 'awash') {
+    if (agentType === 'dashen') {
       return isDashenOrAwash;
-    } else {
+    } else if (agentType === 'telebirr') {
       return !isDashenOrAwash;
+    } else {
+      return false;
     }
   });
 
@@ -193,14 +205,15 @@ export default function WalletTab({
     } else {
       setSelectedAgentId('');
     }
-  }, [agentType, agents, selectedAgentId]);
+  }, [filteredAgents, selectedAgentId]);
 
   // Selected agent object lookup
   const currentAgent = filteredAgents.find(a => a.id === selectedAgentId) || filteredAgents[0];
 
   // Handle Copy Number
   const handleCopyMerchantNumber = () => {
-    const numToCopy = currentAgent ? currentAgent.agent_number : TELEBIRR_MERCHANT_NUMBER;
+    const defaultNumber = agentType === 'dashen' ? DASHEN_MERCHANT_NUMBER : TELEBIRR_MERCHANT_NUMBER;
+    const numToCopy = currentAgent ? currentAgent.agent_number : defaultNumber;
     navigator.clipboard.writeText(numToCopy);
     showToast(
       lang === 'en' 
@@ -248,7 +261,9 @@ export default function WalletTab({
     try {
       const agent = filteredAgents.find(a => a.id === selectedAgentId) || filteredAgents[0];
       const agentId = agent?.id;
-      const agentInfo = agent ? `${agent.agent_name} (${agent.agent_number})` : `${TELEBIRR_MERCHANT_NAME} (${TELEBIRR_MERCHANT_NUMBER})`;
+      const defaultName = agentType === 'dashen' ? DASHEN_MERCHANT_NAME : TELEBIRR_MERCHANT_NAME;
+      const defaultNumber = agentType === 'dashen' ? DASHEN_MERCHANT_NUMBER : TELEBIRR_MERCHANT_NUMBER;
+      const agentInfo = agent ? `${agent.agent_name} (${agent.agent_number})` : `${defaultName} (${defaultNumber})`;
 
       await onDepositSubmit(amountNum, transactionId.trim(), screenshotBase64, agentId, agentInfo);
       showToast(
@@ -488,157 +503,233 @@ export default function WalletTab({
               </div>
 
               <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-4 shadow-sm">
-                {/* Agent Type Segmented Picker */}
-                <div className="space-y-1.5">
+                {/* Agent Network Selector */}
+                <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
                     {t[lang].selectNetwork}
                   </label>
-                  <div className="bg-slate-50 p-1 rounded-xl border border-slate-200 grid grid-cols-2 gap-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Telebirr Agent */}
                     <button
                       type="button"
                       onClick={() => setAgentType('telebirr')}
-                      className={`py-2 px-1 rounded-lg font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                        agentType === 'telebirr' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
+                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        agentType === 'telebirr'
+                          ? 'bg-[#fbbc05]/10 border-[#fbbc05] text-amber-800 font-extrabold shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
                       {t[lang].telebirrAgent}
                     </button>
+
+                    {/* Dashen Bank */}
                     <button
                       type="button"
-                      onClick={() => setAgentType('awash')}
-                      className={`py-2 px-1 rounded-lg font-sans text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                        agentType === 'awash' ? 'bg-[#fbbc05] text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'
+                      onClick={() => setAgentType('dashen')}
+                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        agentType === 'dashen'
+                          ? 'bg-[#fbbc05]/10 border-[#fbbc05] text-amber-800 font-extrabold shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                      {t[lang].dashenAgent}
+                    </button>
+                  </div>
+                  
+                  {/* Secondary Bank Row (Offline) */}
+                  <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-100 mt-2">
+                    {/* CBE Bank */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgentType('cbe');
+                        showToast(t[lang].cbeUnavailable, 'info');
+                      }}
+                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                        agentType === 'cbe'
+                          ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-red-400 shrink-0"></span>
+                      {t[lang].cbeAgent}
+                    </button>
+
+                    {/* Awash Bank */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgentType('awash');
+                        showToast(t[lang].cbeUnavailable, 'info');
+                      }}
+                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                        agentType === 'awash'
+                          ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-red-400 shrink-0"></span>
                       {t[lang].awashAgent}
+                    </button>
+
+                    {/* Abyssinia Bank */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgentType('abyssinia');
+                        showToast(t[lang].cbeUnavailable, 'info');
+                      }}
+                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                        agentType === 'abyssinia'
+                          ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-red-400 shrink-0"></span>
+                      {t[lang].abyssiniaAgent}
                     </button>
                   </div>
                 </div>
 
-                {/* Agent Selector */}
-                {filteredAgents.length > 0 ? (
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
-                      {t[lang].authorizedAgent} ({agentType === 'telebirr' ? 'Telebirr' : 'Dashen Bank'})
-                    </label>
-                    <select
-                      value={selectedAgentId}
-                      onChange={(e) => setSelectedAgentId(e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-xs text-slate-800 p-3 rounded-xl outline-none focus:border-[#fbbc05] font-sans shadow-sm cursor-pointer"
-                    >
-                      {filteredAgents.map((ag) => (
-                        <option key={ag.id} value={ag.id} className="bg-white text-slate-800">
-                          {ag.agent_name} ({ag.agent_number})
-                        </option>
-                      ))}
-                    </select>
+                {['cbe', 'awash', 'abyssinia'].includes(agentType) ? (
+                  <div className="p-4 bg-amber-500/5 border border-amber-500/15 rounded-2xl text-xs text-amber-800 space-y-2 font-sans">
+                    <p className="font-bold uppercase tracking-wider text-[10px] text-amber-700 flex items-center gap-1">
+                      <span>⚠️</span> {lang === 'en' ? 'Unavailable Network' : 'የማይገኝ አውታረ መረብ'}
+                    </p>
+                    <p className="leading-relaxed text-[11px]">{t[lang].cbeUnavailable}</p>
                   </div>
                 ) : (
-                  <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] text-slate-500 text-center">
-                    {t[lang].noActiveAgents}
-                  </div>
-                )}
-                
-                {/* Payment Details Box */}
-                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-2.5 text-[11px]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentName}</span>
-                    <span className="text-slate-800 font-extrabold">
-                      {currentAgent ? currentAgent.agent_name : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NAME : 'Dashen Bank Agent (leykun)')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
-                    <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentAccount}</span>
-                    <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
-                      <span className="text-emerald-700 font-mono font-extrabold">
-                        {currentAgent ? currentAgent.agent_number : (agentType === 'telebirr' ? TELEBIRR_MERCHANT_NUMBER : '5502877108011')}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyMerchantNumber}
-                        className="p-1 hover:bg-[#fbbc05]/10 rounded text-slate-400 hover:text-amber-600 transition-colors cursor-pointer"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Amount Field */}
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].amountUsd}</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder={t[lang].amountPlaceholder}
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
-                    className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
-                  />
-                  {depositAmount && !isNaN(parseFloat(depositAmount)) && (
-                    <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
-                      ≈ {(parseFloat(depositAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">({t[lang].rateText})</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* TxID Field */}
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].txidLabel}</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={t[lang].txidPlaceholder}
-                    value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
-                  />
-                </div>
-
-                {/* Image Selector */}
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].receiptLabel}</label>
-                  
-                  <div className="border border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 flex flex-col items-center justify-center relative hover:border-[#fbbc05]/60 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    
-                    {screenshotBase64 ? (
-                      <div className="space-y-2 text-center w-full">
-                        <img
-                          src={screenshotBase64}
-                          alt="receipt snippet"
-                          referrerPolicy="no-referrer"
-                          className="h-28 mx-auto object-cover rounded-lg border border-slate-200"
-                        />
-                        <p className="text-[10px] text-emerald-600 font-bold">{t[lang].readyUpload}</p>
+                  <>
+                    {/* Agent Selector */}
+                    {filteredAgents.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
+                          {t[lang].authorizedAgent} ({agentType === 'dashen' ? 'Dashen Bank' : 'Telebirr'})
+                        </label>
+                        <select
+                          value={selectedAgentId}
+                          onChange={(e) => setSelectedAgentId(e.target.value)}
+                          className="w-full bg-white border border-slate-200 text-xs text-slate-800 p-3 rounded-xl outline-none focus:border-[#fbbc05] font-sans shadow-sm cursor-pointer"
+                        >
+                          {filteredAgents.map((ag) => (
+                            <option key={ag.id} value={ag.id} className="bg-white text-slate-800">
+                              {ag.agent_name} ({ag.agent_number})
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                        <span className="text-xs font-bold text-slate-600">{t[lang].uploadPrompt}</span>
-                        <span className="text-[9px] text-slate-400 mt-1">{t[lang].uploadMeta}</span>
-                      </>
+                      <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] text-slate-500 text-center">
+                        {t[lang].noActiveAgents}
+                      </div>
                     )}
-                  </div>
-                </div>
+                    
+                    {/* Payment Details Box */}
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-2.5 text-[11px]">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentName}</span>
+                        <span className="text-slate-800 font-extrabold">
+                          {currentAgent ? currentAgent.agent_name : (agentType === 'dashen' ? DASHEN_MERCHANT_NAME : TELEBIRR_MERCHANT_NAME)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-slate-200/60 pt-2.5">
+                        <span className="text-slate-500 uppercase font-bold text-[10px]">{t[lang].agentAccount}</span>
+                        <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 border border-slate-200 rounded-lg">
+                          <span className="text-emerald-700 font-mono font-extrabold">
+                            {currentAgent ? currentAgent.agent_number : (agentType === 'dashen' ? DASHEN_MERCHANT_NUMBER : TELEBIRR_MERCHANT_NUMBER)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyMerchantNumber}
+                            className="p-1 hover:bg-[#fbbc05]/10 rounded text-slate-400 hover:text-amber-600 transition-colors cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Amount Field */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].amountUsd}</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder={t[lang].amountPlaceholder}
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                      />
+                      {depositAmount && !isNaN(parseFloat(depositAmount)) && (
+                        <div className="text-[10px] text-amber-700 font-bold mt-1 px-1">
+                          ≈ {(parseFloat(depositAmount) * 120).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB <span className="text-slate-500 font-normal">({t[lang].rateText})</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* TxID Field */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].txidLabel}</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder={t[lang].txidPlaceholder}
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        className="w-full bg-white border border-slate-200 focus:border-[#fbbc05] focus:ring-1 focus:ring-[#fbbc05] outline-none text-sm text-slate-900 px-4 py-3 rounded-xl transition-all font-mono"
+                      />
+                    </div>
+
+                    {/* Image Selector */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold block">{t[lang].receiptLabel}</label>
+                      
+                      <div className="border border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 flex flex-col items-center justify-center relative hover:border-[#fbbc05]/60 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        
+                        {screenshotBase64 ? (
+                          <div className="space-y-2 text-center w-full">
+                            <img
+                              src={screenshotBase64}
+                              alt="receipt snippet"
+                              referrerPolicy="no-referrer"
+                              className="h-28 mx-auto object-cover rounded-lg border border-slate-200"
+                            />
+                            <p className="text-[10px] text-emerald-600 font-bold">{t[lang].readyUpload}</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                            <span className="text-xs font-bold text-slate-600">{t[lang].uploadPrompt}</span>
+                            <span className="text-[9px] text-slate-400 mt-1">{t[lang].uploadMeta}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
-              <button
-                type="submit"
-                disabled={recharging}
-                className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] disabled:opacity-50 text-slate-950 font-bold text-sm py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md uppercase font-sans"
-              >
-                {recharging ? (
-                  <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                ) : (
-                  t[lang].submitTicket
-                )}
-              </button>
+              {!['cbe', 'awash', 'abyssinia'].includes(agentType) && (
+                <button
+                  type="submit"
+                  disabled={recharging}
+                  className="w-full bg-[#fbbc05] hover:bg-[#e2a804] active:bg-[#c99503] disabled:opacity-50 text-slate-950 font-bold text-sm py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md uppercase font-sans"
+                >
+                  {recharging ? (
+                    <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                  ) : (
+                    t[lang].submitTicket
+                  )}
+                </button>
+              )}
             </form>
           ) : (
             <form onSubmit={handleVerifyOfflineCode} className="space-y-4">

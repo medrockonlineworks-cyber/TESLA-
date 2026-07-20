@@ -59,11 +59,41 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((reg) => console.log('Service Worker registered with scope:', reg.scope))
-            .catch((err) => console.error('Service Worker registration failed:', err));
-        });
+        // Force upgrade to v2 to break any hard caching on mobile devices
+        if (!localStorage.getItem('tesla_sw_updated_v2')) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (let reg of registrations) {
+              reg.unregister();
+            }
+            if ('caches' in window) {
+              caches.keys().then((keys) => {
+                keys.forEach(key => caches.delete(key));
+              });
+            }
+            localStorage.setItem('tesla_sw_updated_v2', 'true');
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          });
+        } else {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then((reg) => {
+                console.log('Service Worker registered with scope:', reg.scope);
+                reg.onupdatefound = () => {
+                  const installingWorker = reg.installing;
+                  if (installingWorker) {
+                    installingWorker.onstatechange = () => {
+                      if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        window.location.reload();
+                      }
+                    };
+                  }
+                };
+              })
+              .catch((err) => console.error('Service Worker registration failed:', err));
+          });
+        }
       }
     </script>
   </body>

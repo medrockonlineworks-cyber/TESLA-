@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tesla-invest-v1';
+const CACHE_NAME = 'tesla-invest-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -43,12 +43,10 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // Network-First, falling back to cache
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(e.request).then((networkResponse) => {
+    fetch(e.request)
+      .then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
@@ -57,9 +55,9 @@ self.addEventListener('fetch', (e) => {
           cache.put(e.request, responseToCache);
         });
         return networkResponse;
-      }).catch(() => {
-        // Offline fallback
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(e.request);
+      })
   );
 });
