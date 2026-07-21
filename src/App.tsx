@@ -455,7 +455,7 @@ export default function App() {
         <div className="max-w-md mx-auto px-6 flex justify-between items-center pointer-events-none">
           {/* Telegram premium glassmorphic pulsing floating launcher button */}
           <motion.a
-            href="https://t.me/tesla_investment_et"
+            href="https://t.me/AndersonFX_Tesla"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.1 }}
