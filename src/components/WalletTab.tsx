@@ -43,7 +43,7 @@ export default function WalletTab({
   const [transactionId, setTransactionId] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState('');
   const [recharging, setRecharging] = useState(false);
-  const [agentType, setAgentType] = useState<'telebirr' | 'dashen' | 'cbe' | 'awash' | 'abyssinia'>('telebirr');
+  const [agentType, setAgentType] = useState<'telebirr' | 'dashen' | 'cbe' | 'awash' | 'abyssinia'>('dashen');
 
   // Active agents state
   const [agents, setAgents] = useState<AgentAccount[]>([]);
@@ -73,7 +73,7 @@ export default function WalletTab({
       withdraw: "Withdraw",
       ledger: "Ledger",
       guideTitle: "How Agent Recharge Works",
-      guide1: "Choose your preferred agent network (Telebirr or Dashen Bank).",
+      guide1: "Use the authorized Dashen Bank agent network to transfer money.",
       guide2: "Transfer money to the authorized agent's number listed below.",
       guide3: "Input the exact deposit value in USD (which computes to the equivalent ETB amount automatically).",
       guide4: "Enter your unique transaction reference ID (TxID / FT Code) and upload a screenshot of your successful transaction receipt.",
@@ -84,7 +84,7 @@ export default function WalletTab({
       cbeAgent: "CBE Bank",
       awashAgent: "Awash Bank",
       abyssiniaAgent: "Abyssinia Bank",
-      cbeUnavailable: "This bank agent network is currently unavailable. Please use Telebirr or Dashen Bank agents.",
+      cbeUnavailable: "This agent network is currently unavailable. Please use Dashen Bank agents.",
       authorizedAgent: "Authorized Agent",
       noActiveAgents: "No active agents configured yet.",
       agentName: "Agent Name:",
@@ -125,7 +125,7 @@ export default function WalletTab({
       withdraw: "ገንዘብ አውጣ",
       ledger: "ግብይቶች",
       guideTitle: "የወኪል ተቀማጭ እንዴት ይሰራል?",
-      guide1: "የመረጡትን የወኪል አውታር ይምረጡ (ቴሌብር ወኪል ወይም ዳሽን ባንክ)::",
+      guide1: "ገንዘብ ለማስተላለፍ የተፈቀደውን የዳሽን ባንክ ወኪል አውታረ መረብ ይጠቀሙ::",
       guide2: "ከታች ባለው በተፈቀደው የወኪል ቁጥር ላይ ገንዘቡን ያስተላልፉ::",
       guide3: "ትክክለኛውን የተቀማጭ መጠን በUSD ያስገቡ (በራስ-ሰር ተመጣጣኝ የብር መጠን ያሰላል)::",
       guide4: "የግብይት መለያ ቁጥር (TxID / FT ኮድ) ያስገቡ እና የደረሰኝ ፎቶ ያያይዙ::",
@@ -135,8 +135,8 @@ export default function WalletTab({
       dashenAgent: "ዳሽን ባንክ",
       cbeAgent: "የኢትዮጵያ ንግድ ባንክ (CBE)",
       awashAgent: "አዋሽ ባንክ",
-      abyssiniaAgent: "አቢሲኒያ ባንክ",
-      cbeUnavailable: "ይህ የባንክ ወኪል አውታረ መረብ በአሁኑ ጊዜ አልተዘጋጀም:: እባክዎ የቴሌብር ወይም የዳሽን ባንክ ወኪሎችን ይጠቀሙ::",
+      abyssiniaAgent: "አቢሲኒ亚 ባንክ",
+      cbeUnavailable: "ይህ የወኪል አውታረ መረብ በአሁኑ ጊዜ አልተዘጋጀም:: እባክዎ የዳሽን ባንክ ወኪሎችን ይጠቀሙ::",
       authorizedAgent: "የተፈቀደ ወኪል",
       noActiveAgents: "ምንም ገባሪ ወኪል አልተገኘም::",
       agentName: "የወኪል ስም:",
@@ -185,11 +185,9 @@ export default function WalletTab({
 
   const filteredAgents = agents.filter(a => {
     const nameLower = a.agent_name.toLowerCase();
-    const isDashenOrAwash = nameLower.includes('awash') || nameLower.includes('dashen') || nameLower.includes('dashin') || a.id.includes('awash') || a.id.includes('dashen') || a.id.includes('dashin');
+    const isDashen = nameLower.includes('dashen') || nameLower.includes('dashin') || a.id.includes('dashen') || a.id.includes('dashin');
     if (agentType === 'dashen') {
-      return isDashenOrAwash;
-    } else if (agentType === 'telebirr') {
-      return !isDashenOrAwash;
+      return isDashen;
     } else {
       return false;
     }
@@ -508,38 +506,41 @@ export default function WalletTab({
                   <label className="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">
                     {t[lang].selectNetwork}
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Telebirr Agent */}
-                    <button
-                      type="button"
-                      onClick={() => setAgentType('telebirr')}
-                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        agentType === 'telebirr'
-                          ? 'bg-[#fbbc05]/10 border-[#fbbc05] text-amber-800 font-extrabold shadow-sm'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                      {t[lang].telebirrAgent}
-                    </button>
-
-                    {/* Dashen Bank */}
+                  <div className="space-y-2">
+                    {/* Active Network: Dashen Bank */}
                     <button
                       type="button"
                       onClick={() => setAgentType('dashen')}
-                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`w-full px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         agentType === 'dashen'
                           ? 'bg-[#fbbc05]/10 border-[#fbbc05] text-amber-800 font-extrabold shadow-sm'
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                      {t[lang].dashenAgent}
+                      {t[lang].dashenAgent} ({lang === 'en' ? 'Active' : 'ገባሪ'})
                     </button>
                   </div>
                   
-                  {/* Secondary Bank Row (Offline) */}
-                  <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-100 mt-2">
+                  {/* Secondary Bank / Network Row (Offline) */}
+                  <div className="grid grid-cols-4 gap-1 pt-1.5 border-t border-slate-100 mt-2">
+                    {/* Telebirr Agent */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgentType('telebirr');
+                        showToast(t[lang].cbeUnavailable, 'info');
+                      }}
+                      className={`px-1.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                        agentType === 'telebirr'
+                          ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-red-400 shrink-0"></span>
+                      {t[lang].telebirrAgent}
+                    </button>
+
                     {/* CBE Bank */}
                     <button
                       type="button"
@@ -547,7 +548,7 @@ export default function WalletTab({
                         setAgentType('cbe');
                         showToast(t[lang].cbeUnavailable, 'info');
                       }}
-                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                      className={`px-1.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
                         agentType === 'cbe'
                           ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
@@ -564,7 +565,7 @@ export default function WalletTab({
                         setAgentType('awash');
                         showToast(t[lang].cbeUnavailable, 'info');
                       }}
-                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                      className={`px-1.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
                         agentType === 'awash'
                           ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
@@ -581,7 +582,7 @@ export default function WalletTab({
                         setAgentType('abyssinia');
                         showToast(t[lang].cbeUnavailable, 'info');
                       }}
-                      className={`px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
+                      className={`px-1.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer opacity-80 ${
                         agentType === 'abyssinia'
                           ? 'bg-red-50 border-red-300 text-red-800 shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
@@ -593,7 +594,7 @@ export default function WalletTab({
                   </div>
                 </div>
 
-                {['cbe', 'awash', 'abyssinia'].includes(agentType) ? (
+                {['telebirr', 'cbe', 'awash', 'abyssinia'].includes(agentType) ? (
                   <div className="p-4 bg-amber-500/5 border border-amber-500/15 rounded-2xl text-xs text-amber-800 space-y-2 font-sans">
                     <p className="font-bold uppercase tracking-wider text-[10px] text-amber-700 flex items-center gap-1">
                       <span>⚠️</span> {lang === 'en' ? 'Unavailable Network' : 'የማይገኝ አውታረ መረብ'}
