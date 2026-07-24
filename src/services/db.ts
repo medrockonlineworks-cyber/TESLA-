@@ -141,6 +141,11 @@ const initLocalDb = () => {
   });
 
   users.forEach(u => {
+    const shouldBeAdmin = u.email.toLowerCase() === 'leykunjemaneh3@gmail.com';
+    if (u.is_admin !== shouldBeAdmin) {
+      u.is_admin = shouldBeAdmin;
+      updatedUsers = true;
+    }
     if (u.balance === 10) {
       const hasWelcomeBonus = transactions.some(tx => tx.user_id === u.id && tx.type === 'bonus' && tx.description === 'Welcome Sign-up Bonus Credit');
       if (hasWelcomeBonus) {
@@ -193,7 +198,7 @@ export const dbService = {
           email,
           balance: 0,
           total_profit: 0,
-          is_admin: email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com', // Default admin flags
+          is_admin: email.toLowerCase() === 'leykunjemaneh3@gmail.com', // Admin access granted strictly to leykunjemaneh3@gmail.com
           created_at: new Date().toISOString()
         };
 
@@ -216,8 +221,7 @@ export const dbService = {
         return { user: null, error: 'Email address already registered' };
       }
 
-      const isFirstUser = users.length === 0;
-      const isAdmin = isFirstUser || email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com';
+      const isAdmin = email.toLowerCase() === 'leykunjemaneh3@gmail.com';
 
       const newUser: DbUser = {
         id: 'u_' + Math.random().toString(36).substr(2, 9),
@@ -276,13 +280,17 @@ export const dbService = {
             email,
             balance: 0,
             total_profit: 0,
-            is_admin: email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com',
+            is_admin: email.toLowerCase() === 'leykunjemaneh3@gmail.com',
             created_at: new Date().toISOString()
           };
           return { user: fallbackProfile, error: null };
         }
 
-        return { user: profile as DbUser, error: null };
+        const dbUser = profile as DbUser;
+        if (dbUser) {
+          dbUser.is_admin = dbUser.email?.toLowerCase() === 'leykunjemaneh3@gmail.com';
+        }
+        return { user: dbUser, error: null };
       } catch (err: any) {
         return { user: null, error: err.message || 'Login Error' };
       }
@@ -294,6 +302,9 @@ export const dbService = {
         return { user: null, error: 'Invalid email or password' };
       }
       
+      user.is_admin = user.email.toLowerCase() === 'leykunjemaneh3@gmail.com';
+      setStorageItem('users', users);
+
       // Simple verification (for simulation, allow any password)
       localStorage.setItem('tesla_inv_session', user.id);
       return { user, error: null };
@@ -312,7 +323,7 @@ export const dbService = {
 
         if (profileErr) {
           // If profile table doesn't exist yet or user not found, create profile
-          const isAdmin = email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com';
+          const isAdmin = email.toLowerCase() === 'leykunjemaneh3@gmail.com';
           const newProfile: DbUser = {
             id: uid,
             full_name: fullName,
@@ -344,7 +355,11 @@ export const dbService = {
           return { user: newProfile, error: null };
         }
 
-        return { user: profile as DbUser, error: null };
+        const dbUser = profile as DbUser;
+        if (dbUser) {
+          dbUser.is_admin = dbUser.email?.toLowerCase() === 'leykunjemaneh3@gmail.com';
+        }
+        return { user: dbUser, error: null };
       } catch (err: any) {
         return { user: null, error: err.message || 'Google Auth Error' };
       }
@@ -354,8 +369,7 @@ export const dbService = {
       let user = users.find(u => u.email.toLowerCase() === email.toLowerCase() || u.id === uid);
       
       if (!user) {
-        const isFirstUser = users.length === 0;
-        const isAdmin = isFirstUser || email.toLowerCase() === 'admin@tesla.com' || email.toLowerCase() === 'admin@gmail.com';
+        const isAdmin = email.toLowerCase() === 'leykunjemaneh3@gmail.com';
 
         user = {
           id: uid,
@@ -382,6 +396,9 @@ export const dbService = {
         const txs = getStorageItem<Transaction[]>('transactions', []);
         txs.unshift(tx);
         setStorageItem('transactions', txs);
+      } else {
+        user.is_admin = user.email.toLowerCase() === 'leykunjemaneh3@gmail.com';
+        setStorageItem('users', users);
       }
 
       localStorage.setItem('tesla_inv_session', user.id);
@@ -416,11 +433,15 @@ export const dbService = {
             email: user.email || '',
             balance: 0,
             total_profit: 0,
-            is_admin: user.email === 'admin@tesla.com' || user.email === 'admin@gmail.com',
+            is_admin: user.email?.toLowerCase() === 'leykunjemaneh3@gmail.com',
             created_at: user.created_at
           };
         }
-        return profile as DbUser;
+        const dbUser = profile as DbUser;
+        if (dbUser) {
+          dbUser.is_admin = dbUser.email?.toLowerCase() === 'leykunjemaneh3@gmail.com';
+        }
+        return dbUser;
       } catch {
         return null;
       }
@@ -431,6 +452,9 @@ export const dbService = {
 
       const users = getStorageItem<DbUser[]>('users', []);
       const user = users.find(u => u.id === sessionUserId);
+      if (user) {
+        user.is_admin = user.email?.toLowerCase() === 'leykunjemaneh3@gmail.com';
+      }
       return user || null;
     }
   },

@@ -170,10 +170,10 @@ export default function AuthScreen({ onAuthSuccess, showToast, lang, setLang }: 
   const handleDemoAdminLogin = async () => {
     setLoading(true);
     try {
-      const { user, error } = await dbService.signIn('admin@tesla.com', 'admin123');
+      const { user, error } = await dbService.signIn('leykunjemaneh3@gmail.com', 'admin123');
       if (error) {
         // If the admin user doesn't exist yet, we will register them locally
-        const { user: newUser, error: regError } = await dbService.signUp('Tesla Administrator', 'admin@tesla.com', 'admin123');
+        const { user: newUser, error: regError } = await dbService.signUp('Leykun Jemaneh (Admin)', 'leykunjemaneh3@gmail.com', 'admin123');
         if (newUser) {
           showToast(t[lang].localAdminLogin, 'success');
           onAuthSuccess(newUser);
