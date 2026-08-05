@@ -155,11 +155,45 @@ const initLocalDb = () => {
     }
   });
 
+  // Auto-reject any pending bonus withdrawal requests and return funds to wallet
+  const withdrawals = getStorageItem<Withdrawal[]>('withdrawals', []);
+  let updatedWithdrawals = false;
+
+  withdrawals.forEach(wd => {
+    if (wd.status === 'pending') {
+      const uIndex = users.findIndex(u => u.id === wd.user_id);
+      if (uIndex !== -1) {
+        const u = users[uIndex];
+        const userProfit = u.total_profit || 0;
+        if (userProfit <= 0 || wd.amount > userProfit) {
+          wd.status = 'rejected';
+          users[uIndex].balance += wd.amount;
+          
+          const refundTx: Transaction = {
+            id: 'tx_wd_auto_rej_' + Math.random().toString(36).substr(2, 9),
+            user_id: u.id,
+            type: 'bonus',
+            amount: wd.amount,
+            description: `Bonus Withdrawal Order Auto-Rejected: $${wd.amount.toFixed(2)} returned to wallet (Withdrawals allowed only from profit)`,
+            created_at: new Date().toISOString()
+          };
+          transactions.unshift(refundTx);
+          updatedUsers = true;
+          updatedTxs = true;
+          updatedWithdrawals = true;
+        }
+      }
+    }
+  });
+
   if (updatedUsers) {
     setStorageItem('users', users);
   }
   if (updatedTxs) {
     setStorageItem('transactions', transactions);
+  }
+  if (updatedWithdrawals) {
+    setStorageItem('withdrawals', withdrawals);
   }
 };
 
@@ -1032,6 +1066,38 @@ export const dbService = {
     } else {
       const withdrawals = getStorageItem<Withdrawal[]>('withdrawals', []);
       const users = getStorageItem<DbUser[]>('users', []);
+      const txs = getStorageItem<Transaction[]>('transactions', []);
+      let updated = false;
+
+      withdrawals.forEach(wd => {
+        if (wd.status === 'pending') {
+          const uIndex = users.findIndex(u => u.id === wd.user_id);
+          if (uIndex !== -1) {
+            const u = users[uIndex];
+            const userProfit = u.total_profit || 0;
+            if (userProfit <= 0 || wd.amount > userProfit) {
+              wd.status = 'rejected';
+              users[uIndex].balance += wd.amount;
+              const refundTx: Transaction = {
+                id: 'tx_wd_auto_rej_' + Math.random().toString(36).substr(2, 9),
+                user_id: u.id,
+                type: 'bonus',
+                amount: wd.amount,
+                description: `Bonus Withdrawal Order Auto-Rejected: $${wd.amount.toFixed(2)} returned to wallet (Withdrawals allowed only from profit)`,
+                created_at: new Date().toISOString()
+              };
+              txs.unshift(refundTx);
+              updated = true;
+            }
+          }
+        }
+      });
+
+      if (updated) {
+        setStorageItem('withdrawals', withdrawals);
+        setStorageItem('users', users);
+        setStorageItem('transactions', txs);
+      }
       
       const filtered = userId ? withdrawals.filter(w => w.user_id === userId) : withdrawals;
 
@@ -1049,6 +1115,16 @@ export const dbService = {
     const user = await this.getCurrentUser(userId);
     if (!user) throw new Error('User not found');
     if (user.balance < amount) throw new Error('Insufficient wallet balance for withdrawal');
+
+    const totalProfit = user.total_profit || 0;
+    if (totalProfit <= 0) {
+      throw new Error('Sign-up bonuses ($30) cannot be withdrawn. Withdrawals are only available when investment profit has been earned.');
+    }
+
+    const maxWithdrawable = Math.min(user.balance, totalProfit);
+    if (amount > maxWithdrawable) {
+      throw new Error(`Sign-up bonuses ($30) cannot be withdrawn. Your maximum withdrawable profit balance is $${maxWithdrawable.toFixed(2)}.`);
+    }
 
     const newWithdrawal: Withdrawal = {
       id: 'wd_' + Math.random().toString(36).substr(2, 9),
@@ -1803,11 +1879,23 @@ export const dbService = {
         throw new Error('Invalid Signature');
       }
 
-      // Success Path: check balance, deduct wallet
+      // Success Path: check balance & profit, deduct wallet
       const userIndex = users.findIndex(u => u.id === userId);
       if (userIndex === -1) {
         logAttempt(false, 'User profile not found');
         throw new Error('User profile not found');
+      }
+
+      const totalProfit = users[userIndex].total_profit || 0;
+      if (totalProfit <= 0) {
+        logAttempt(false, 'Bonus cannot be withdrawn. Profit required.');
+        throw new Error('Sign-up bonuses ($30) cannot be withdrawn. Withdrawals are only available when investment profit has been earned.');
+      }
+
+      const maxWithdrawable = Math.min(users[userIndex].balance, totalProfit);
+      if (record.amount > maxWithdrawable) {
+        logAttempt(false, 'Requested amount exceeds withdrawable profit balance.');
+        throw new Error(`Sign-up bonuses ($30) cannot be withdrawn. Your maximum withdrawable profit balance is $${maxWithdrawable.toFixed(2)}.`);
       }
 
       if (users[userIndex].balance < record.amount) {

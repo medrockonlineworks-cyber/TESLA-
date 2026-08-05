@@ -347,6 +347,30 @@ export default function WalletTab({
       showToast(lang === 'en' ? 'Please enter a valid withdrawal amount.' : 'እባክዎ ትክክለኛ የማውጫ መጠን ያስገቡ::', 'error');
       return;
     }
+    
+    const userProfit = user.total_profit || 0;
+    const withdrawableProfit = Math.min(user.balance, Math.max(0, userProfit));
+
+    if (userProfit <= 0) {
+      showToast(
+        lang === 'en'
+          ? 'Sign-up bonuses ($30) cannot be withdrawn. Withdrawals are only available when investment profit has been earned.'
+          : 'የእንኳን ደህና መጡ ቦነስን ማውጣት አይቻልም:: ወጪ ማድረግ የሚቻለው የኢንቨስትመንት ትርፍ ሲገኝ ብቻ ነው::',
+        'error'
+      );
+      return;
+    }
+
+    if (amountNum > withdrawableProfit) {
+      showToast(
+        lang === 'en'
+          ? `Sign-up bonuses ($30) cannot be withdrawn. Your maximum withdrawable profit balance is ${formatAmount(withdrawableProfit)}.`
+          : `የ $30 ቦነስዎን ማውጣት አይችሉም:: ከትርፍዎ ማውጣት የሚችሉት ከፍተኛው መጠን ${formatAmount(withdrawableProfit)} ነው::`,
+        'error'
+      );
+      return;
+    }
+
     if (amountNum > user.balance) {
       showToast(lang === 'en' ? 'Insufficient wallet balance to perform this withdrawal.' : 'ለማውጣት በቂ ቀሪ ሂሳብ የለዎትም::', 'error');
       return;
@@ -813,12 +837,31 @@ export default function WalletTab({
             <form onSubmit={handleWithdrawSubmit} className="space-y-4">
               <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-4 shadow-sm">
                 {/* Available to withdraw banner */}
-                <div className="flex justify-between items-center p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl text-xs text-slate-600">
-                  <span className="text-slate-500 flex items-center gap-1.5 font-bold">
-                    <Landmark className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    {t[lang].liquidCapital}
-                  </span>
-                  <span className="text-emerald-700 font-black font-mono">{formatAmount(user.balance, 2)}</span>
+                <div className="p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl text-xs space-y-2 font-sans">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span className="text-slate-500 flex items-center gap-1.5 font-bold">
+                      <Wallet className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      {lang === 'en' ? 'Total Wallet Balance' : 'አጠቃላይ ቀሪ ሂሳብ'}
+                    </span>
+                    <span className="text-slate-900 font-bold font-mono">{formatAmount(user.balance, 2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/60 pt-2">
+                    <span className="text-emerald-700 flex items-center gap-1.5 font-extrabold">
+                      <Landmark className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      {lang === 'en' ? 'Withdrawable Profit' : 'ማውጣት የሚቻል የትርፍ ሂሳብ'}
+                    </span>
+                    <span className="text-emerald-700 font-black font-mono">
+                      {formatAmount(Math.min(user.balance, Math.max(0, user.total_profit || 0)), 2)}
+                    </span>
+                  </div>
+                  <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10px] text-amber-900 flex items-start gap-1.5 font-sans mt-1">
+                    <span className="shrink-0 text-amber-600">⚠️</span>
+                    <span className="leading-relaxed">
+                      {lang === 'en'
+                        ? 'Welcome sign-up bonus ($30.00) cannot be withdrawn directly. Withdrawals are allowed exclusively after earning profit from investments.'
+                        : 'የ $30.00 ቦነስ በቀጥታ ሊወጣ አይችልም:: ወጪ ማድረግ የሚቻለው በኢንቨስትመንት ያገኙትን ትርፍ ብቻ ነው::'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Withdrawal Amount */}
