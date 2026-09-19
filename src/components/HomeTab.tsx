@@ -124,17 +124,18 @@ export default function HomeTab({
       expectedReturns: "Expected returns",
       paymentDetails: "Payment Details",
       paymentMethod: "Payment method",
-      cbeBank: "COMMERCIAL BANK OF ETHIOPIA",
+      cbeBank: "None",
       holderName: "Holder account name",
-      holderValue: "Agent - Geleta Babe Gelan",
+      holderValue: "None",
       paymentAccount: "Payment account",
       copyBtn: "Copy",
+      noBankNotice: "No rechargeable bank account available for now (None). Bank recharge channels are temporarily disabled.",
       instructions: "Instructions:",
-      inst1: "Open your Commercial Bank of Ethiopia (CBE) app",
-      inst2: "Transfer the exact Birr amount",
-      inst3: "to the account above",
-      inst4: "Take a screenshot of the transaction receipt",
-      inst5: "Upload the screenshot below to initiate verification",
+      inst1: "Rechargeable bank accounts are currently suspended",
+      inst2: "Do not attempt to send funds until a valid account is posted",
+      inst3: "",
+      inst4: "Use offline vouchers or contact support for assistance",
+      inst5: "Verification will resume once an account is authorized",
       timeRemaining: "TIME REMAINING TO COMPLETE PAYMENT",
       uploadProof: "Upload Payment Proof",
       chooseFile: "Choose File",
@@ -176,17 +177,18 @@ export default function HomeTab({
       expectedReturns: "የሚጠበቀው ትርፍ",
       paymentDetails: "የክፍያ ዝርዝሮች",
       paymentMethod: "የክፍያ መንገድ",
-      cbeBank: "የኢትዮጵያ ንግድ ባንክ (CBE)",
+      cbeBank: "ምንም የለም (None)",
       holderName: "የአካውንት ስም",
-      holderValue: "ወኪል - ገለታ ባቤ ገላን",
+      holderValue: "ምንም የለም (None)",
       paymentAccount: "የባንክ አካውንት ቁጥር",
       copyBtn: "ቅዳ",
+      noBankNotice: "በአሁኑ ጊዜ የሚገኝ የባንክ መሙያ አካውንት የለም (ምንም የለም):: የባንክ ክፍያዎች ለጊዜው ታግደዋል::",
       instructions: "መመሪያዎች:",
-      inst1: "የኢትዮጵያ ንግድ ባንክ (CBE) መተግበሪያዎን ይክፈቱ",
-      inst2: "ትክክለኛውን የብር መጠን ያስተላልፉ",
-      inst3: "ከላይ ወዳለው የባንክ ሂሳብ",
-      inst4: "የዝውውሩን ደረሰኝ ስክሪንሾት ያንሱ",
-      inst5: "ማረጋገጫ ለመጀመር ስክሪንሾቱን ከታች ይስቀሉ",
+      inst1: "የባንክ መሙያ አካውንቶች ለጊዜው ታግደዋል",
+      inst2: "ትክክለኛ አካውንት እስኪለጠፍ ድረስ ገንዘብ አያስተላልፉ",
+      inst3: "",
+      inst4: "ኦፍላይን ቫውቸር ኮድ ይጠቀሙ ወይም እርዳታ ያግኙ",
+      inst5: "አካውንት ሲፈቀድ ማረጋገጫው ይቀጥላል",
       timeRemaining: "ክፍያውን ለማጠናቀቅ የቀረው ጊዜ",
       uploadProof: "የክፍያ ማረጋገጫ ይስቀሉ",
       chooseFile: "ፋይል ይምረጡ",
@@ -430,41 +432,42 @@ export default function HomeTab({
                 {/* Section Title */}
                 <h4 className="text-slate-900 text-xs font-bold uppercase tracking-widest mt-4 block">{t[lang].paymentDetails}</h4>
 
-                {/* Yellow Card 4: CBE Bank details */}
+                {/* Yellow Card 4: Bank details (None available for now) */}
                 <div className="bg-[#fffdf0] border border-amber-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(251,188,5,0.03)] space-y-3">
+                  {/* Warning Notice Banner */}
+                  <div className="p-3 bg-red-50 border border-red-200/80 rounded-xl text-xs text-red-800 space-y-1">
+                    <span className="font-extrabold uppercase tracking-wider text-[10px] text-red-700 flex items-center gap-1.5">
+                      <span>⚠️</span> {lang === 'en' ? 'Rechargeable Account: None' : 'የባንክ መሙያ አካውንት: ምንም የለም'}
+                    </span>
+                    <p className="text-[11px] font-medium leading-relaxed">
+                      {t[lang].noBankNotice}
+                    </p>
+                  </div>
+
                   <div>
                     <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].paymentMethod}</span>
-                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">{t[lang].cbeBank}</span>
+                    <span className="text-slate-500 font-extrabold text-xs block mt-0.5">{t[lang].cbeBank}</span>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2">
                     <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].holderName}</span>
-                    <span className="text-slate-900 font-extrabold text-xs block mt-0.5">{t[lang].holderValue}</span>
+                    <span className="text-slate-500 font-extrabold text-xs block mt-0.5">{t[lang].holderValue}</span>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2 flex justify-between items-end">
                     <div>
                       <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider block">{t[lang].paymentAccount}</span>
-                      <span className="text-slate-900 font-extrabold text-sm block mt-0.5 font-mono">1000756321424</span>
+                      <span className="text-slate-500 font-extrabold text-sm block mt-0.5 font-mono">
+                        {lang === 'en' ? 'None (Unavailable)' : 'ምንም የለም (አይገኝም)'}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText('1000756321424');
-                        showToast(t[lang].copiedToast, 'success');
-                      }}
-                      className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border border-amber-500/25 cursor-pointer"
-                    >
-                      <ClipboardCheck className="w-3 h-3" />
-                      <span>{t[lang].copyBtn}</span>
-                    </button>
                   </div>
 
                   <div className="border-t border-amber-200/40 pt-2.5">
                     <span className="text-slate-900 font-bold text-[10px] block mb-1">{t[lang].instructions}</span>
                     <ul className="text-[10px] text-slate-600 list-disc list-inside space-y-0.5 font-medium leading-relaxed">
                       <li>{t[lang].inst1}</li>
-                      <li>{t[lang].inst2} <strong className="text-slate-900">({(selectedPlan.amount * 120).toLocaleString()} ETB)</strong> {t[lang].inst3}</li>
+                      <li>{t[lang].inst2}</li>
                       <li>{t[lang].inst4}</li>
                       <li>{t[lang].inst5}</li>
                     </ul>
@@ -523,45 +526,12 @@ export default function HomeTab({
                 <div className="space-y-2 pt-4">
                   <button
                     onClick={async () => {
-                      if (!paymentProof) {
-                        showToast(t[lang].uploadRequiredToast, 'error');
-                        return;
-                      }
-                      setInvesting(true);
-                      try {
-                        const screenshotMockUrl = paymentProof
-                          ? URL.createObjectURL(paymentProof)
-                          : 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=60';
-                        
-                        await onDepositSubmit(
-                          selectedPlan.amount,
-                          orderId,
-                          screenshotMockUrl,
-                          undefined,
-                          `Direct Investment: ${selectedPlan.id}`
-                        );
-                        
-                        showToast(t[lang].submitSuccessToast, 'success');
-                        setSelectedPlan(null);
-                        setPaymentProof(null);
-                      } catch (err: any) {
-                        showToast(err.message || 'Verification failed.', 'error');
-                      } finally {
-                        setInvesting(false);
-                      }
+                      showToast(t[lang].noBankNotice, 'error');
+                      return;
                     }}
-                    disabled={investing || !paymentProof}
-                    className={`w-full py-3.5 text-center text-xs uppercase font-extrabold tracking-wider rounded-xl transition-all ${
-                      paymentProof
-                        ? 'bg-[#fbbc05] text-slate-950 hover:bg-[#e2a804] active:scale-98 cursor-pointer shadow-md'
-                        : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-80'
-                    }`}
+                    className="w-full py-3.5 text-center text-xs uppercase font-extrabold tracking-wider rounded-xl transition-all bg-slate-200 text-slate-500 cursor-not-allowed"
                   >
-                    {investing ? (
-                      <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin mx-auto" />
-                    ) : (
-                      t[lang].uploadToContinue
-                    )}
+                    {lang === 'en' ? 'Bank Recharge Unavailable (None)' : 'የባንክ ክፍያ ለጊዜው አይገኝም (ምንም የለም)'}
                   </button>
 
                   <button

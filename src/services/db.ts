@@ -72,22 +72,7 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
   }
 ];
 
-const DEFAULT_AGENTS: AgentAccount[] = [
-  {
-    id: 'agent_1',
-    agent_name: 'Telebirr Authorized Agent',
-    agent_number: '0926193920',
-    is_active: true,
-    created_at: new Date(Date.now() - 3600000 * 48).toISOString()
-  },
-  {
-    id: 'agent_dashen_leykun',
-    agent_name: 'Dashen Bank Agent (leykun)',
-    agent_number: '5502877108011',
-    is_active: true,
-    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
-  }
-];
+const DEFAULT_AGENTS: AgentAccount[] = [];
 
 // Local state helpers
 function getStorageItem<T>(key: string, defaultValue: T): T {
@@ -121,13 +106,8 @@ const initLocalDb = () => {
   const transactions = getStorageItem<Transaction[]>('transactions', []);
   getStorageItem<Announcement[]>('announcements', DEFAULT_ANNOUNCEMENTS);
 
-  // Force reset agents to ensure both Telebirr and Dashen are present
-  const storedAgents = localStorage.getItem('tesla_inv_agent_accounts');
-  if (!storedAgents || !storedAgents.includes('5502877108011') || !storedAgents.includes('0926193920')) {
-    localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify(DEFAULT_AGENTS));
-  } else {
-    getStorageItem<AgentAccount[]>('agent_accounts', DEFAULT_AGENTS);
-  }
+  // Remove all rechargeable bank/agent accounts and default to none
+  localStorage.setItem('tesla_inv_agent_accounts', JSON.stringify([]));
 
   // Migrate existing users/transactions from $10 welcome bonus to $30
   let updatedUsers = false;
